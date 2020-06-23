@@ -96,4 +96,4 @@ class ImageUploader extends \Magento\Catalog\Model\ImageUploader
 
         return $imageName;
     }
-};
+
