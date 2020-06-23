@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\GroupedProduct\Api;
@@ -125,7 +125,6 @@ class ProductRepositoryInterfaceTest extends WebapiAbstract
             ProductInterface::TYPE_ID => 'simple',
             ProductInterface::PRICE => 100,
             ProductInterface::STATUS => 1,
-            ProductInterface::TYPE_ID => 'simple',
             ProductInterface::ATTRIBUTE_SET_ID => 4,
             ProductInterface::EXTENSION_ATTRIBUTES_KEY => [
                 'stock_item' => $this->getStockItemData()
@@ -162,7 +161,7 @@ class ProductRepositoryInterfaceTest extends WebapiAbstract
                             "position" => 0, "extension_attributes" => ["qty" => 4]];
         $productLinkData2 = ["sku" => "group_product_500", "link_type" => "upsell",
                              "linked_product_sku" => "product_simple_500", "linked_product_type" => "simple",
-                             "position" => 0, "extension_attributes" => []];
+                             "position" => 0];
         $productWithGroupData =  [
             ProductInterface::SKU => "group_product_500",
             ProductInterface::NAME => "Group Product 500",

@@ -1,10 +1,16 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Setup\Module\Di\App\Task;
 
+use Magento\Setup\Module\Di\App\Task\Operation\AppActionListGenerator;
+use Magento\Setup\Module\Di\App\Task\Operation\PluginListGenerator;
+
+/**
+ * Factory that creates list of OperationInterface classes
+ */
 class OperationFactory
 {
     /**
@@ -48,18 +54,25 @@ class OperationFactory
     const APPLICATION_CODE_GENERATOR = 'application_code_generator';
 
     /**
+     * Application action list generator
+     */
+    const APPLICATION_ACTION_LIST_GENERATOR = 'application_action_list_generator';
+
+    /**
      * Operations definitions
      *
      * @var array
      */
     private $operationsDefinitions = [
-        self::DATA_ATTRIBUTES_GENERATOR => 'Magento\Setup\Module\Di\App\Task\Operation\ServiceDataAttributesGenerator',
-        self::AREA_CONFIG_GENERATOR => 'Magento\Setup\Module\Di\App\Task\Operation\Area',
-        self::APPLICATION_CODE_GENERATOR => 'Magento\Setup\Module\Di\App\Task\Operation\ApplicationCodeGenerator',
-        self::INTERCEPTION => 'Magento\Setup\Module\Di\App\Task\Operation\Interception',
-        self::INTERCEPTION_CACHE => 'Magento\Setup\Module\Di\App\Task\Operation\InterceptionCache',
-        self::REPOSITORY_GENERATOR => 'Magento\Setup\Module\Di\App\Task\Operation\RepositoryGenerator',
-        self::PROXY_GENERATOR => 'Magento\Setup\Module\Di\App\Task\Operation\ProxyGenerator',
+        self::DATA_ATTRIBUTES_GENERATOR =>
+            \Magento\Setup\Module\Di\App\Task\Operation\ServiceDataAttributesGenerator::class,
+        self::AREA_CONFIG_GENERATOR => \Magento\Setup\Module\Di\App\Task\Operation\Area::class,
+        self::APPLICATION_CODE_GENERATOR => \Magento\Setup\Module\Di\App\Task\Operation\ApplicationCodeGenerator::class,
+        self::INTERCEPTION => \Magento\Setup\Module\Di\App\Task\Operation\Interception::class,
+        self::INTERCEPTION_CACHE => \Magento\Setup\Module\Di\App\Task\Operation\InterceptionCache::class,
+        self::REPOSITORY_GENERATOR => \Magento\Setup\Module\Di\App\Task\Operation\RepositoryGenerator::class,
+        self::PROXY_GENERATOR => \Magento\Setup\Module\Di\App\Task\Operation\ProxyGenerator::class,
+        self::APPLICATION_ACTION_LIST_GENERATOR => AppActionListGenerator::class,
     ];
 
     /**
