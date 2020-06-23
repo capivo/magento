@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -25,7 +25,7 @@ class AssertSubTotalOrderReview extends AbstractConstraint
     {
         $reviewSubTotal = $checkoutOnepage->getReviewBlock()->getSubtotal();
 
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $reviewSubTotal,
             number_format($subTotal, 2),
             'Subtotal price: \'' . $reviewSubTotal

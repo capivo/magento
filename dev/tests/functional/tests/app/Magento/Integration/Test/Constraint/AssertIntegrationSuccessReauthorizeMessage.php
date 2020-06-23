@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -32,7 +32,7 @@ class AssertIntegrationSuccessReauthorizeMessage extends AbstractConstraint
         IntegrationIndex $integrationIndexPage,
         Integration $integration
     ) {
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             sprintf(self::SUCCESS_REAUTHORIZE_MESSAGE, $integration->getName()),
             $integrationIndexPage->getMessagesBlock()->getSuccessMessage(),
             "Wrong success message is displayed."

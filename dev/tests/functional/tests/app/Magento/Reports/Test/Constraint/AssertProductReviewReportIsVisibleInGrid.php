@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -27,7 +27,7 @@ class AssertProductReviewReportIsVisibleInGrid extends AbstractConstraint
     {
         $productReportReview->open();
         $name = $review->getDataFieldConfig('entity_id')['source']->getEntity()->getName();
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $productReportReview->getGridBlock()->isRowVisible(['title' => $name], false),
             'Review for ' . $name . ' product is not visible in reports grid.'
         );

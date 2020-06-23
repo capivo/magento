@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -32,8 +32,7 @@ class Curl extends AbstractCurl implements CustomerInterface
     protected $mappingData = [
         'country_id' => [
             'United States' => 'US',
-            'United Kingdom' => 'GB',
-            'Germany' => 'DE'
+            'United Kingdom' => 'GB'
         ],
         'gender' => [
             'Male' => 1,
@@ -87,7 +86,6 @@ class Curl extends AbstractCurl implements CustomerInterface
         /** @var Customer $customer */
         $data = $customer->getData();
         $data['group_id'] = $this->getCustomerGroup($customer);
-        $data['website_id'] = $this->getCustomerWebsite($customer);
         $address = [];
         $url = $_ENV['app_frontend_url'] . 'customer/account/createpost/?nocookie=true';
 
@@ -101,7 +99,7 @@ class Curl extends AbstractCurl implements CustomerInterface
         $response = $curl->read();
         $curl->close();
         // After caching My Account page we cannot check by success message
-        if (strpos($response, 'block-dashboard-info') === false) {
+        if (!strpos($response, 'block-dashboard-info')) {
             throw new \Exception("Customer entity creating  by curl handler was not successful! Response: $response");
         }
 
@@ -192,7 +190,7 @@ class Curl extends AbstractCurl implements CustomerInterface
         $response = $curl->read();
         $curl->close();
 
-        if (strpos($response, 'data-ui-id="messages-message-success"') === false) {
+        if (!strpos($response, 'data-ui-id="messages-message-success"')) {
             $this->_eventManager->dispatchEvent(['curl_failed'], [$response]);
             throw new \Exception('Failed to update customer!');
         }
@@ -229,16 +227,5 @@ class Curl extends AbstractCurl implements CustomerInterface
         $curlData['address'] = $address;
 
         return $curlData;
-    }
-
-    /**
-     * Prepare customer website data.
-     *
-     * @param Customer $customer
-     * @return int
-     */
-    private function getCustomerWebsite(Customer $customer)
-    {
-        return $customer->getDataFieldConfig('website_id')['source']->getWebsite()->getWebsiteId();
     }
 }

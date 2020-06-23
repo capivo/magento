@@ -1,9 +1,8 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\ConfigurableProduct\Api;
 
 use Magento\TestFramework\TestCase\WebapiAbstract;
@@ -27,12 +26,12 @@ class CartItemRepositoryTest extends WebapiAbstract
 
     /**
      * @magentoApiDataFixture Magento/Checkout/_files/quote_with_address_saved.php
-     * @magentoApiDataFixture Magento/ConfigurableProduct/_files/product_configurable_sku.php
+     * @magentoApiDataFixture Magento/ConfigurableProduct/_files/product_configurable.php
      */
     public function testAddProduct()
     {
         /** @var \Magento\Quote\Model\Quote $quote */
-        $quote = $this->objectManager->create(\Magento\Quote\Model\Quote::class);
+        $quote = $this->objectManager->create('Magento\Quote\Model\Quote');
         $quote->load('test_order_1', 'reserved_order_id');
         $cartId = $quote->getId();
 
@@ -70,14 +69,14 @@ class CartItemRepositoryTest extends WebapiAbstract
 
     /**
      * @magentoApiDataFixture Magento/Checkout/_files/quote_with_address_saved.php
-     * @magentoApiDataFixture Magento/ConfigurableProduct/_files/product_configurable_sku.php
+     * @magentoApiDataFixture Magento/ConfigurableProduct/_files/product_configurable.php
      * @expectedException \Exception
      * @expectedExceptionMessage You need to choose options for your item.
      */
     public function testAddProductWithIncorrectOptions()
     {
         /** @var \Magento\Quote\Model\Quote $quote */
-        $quote = $this->objectManager->create(\Magento\Quote\Model\Quote::class);
+        $quote = $this->objectManager->create('Magento\Quote\Model\Quote');
         $quote->load('test_order_1', 'reserved_order_id');
         $cartId = $quote->getId();
 
@@ -106,13 +105,13 @@ class CartItemRepositoryTest extends WebapiAbstract
     /**
      * @magentoApiDataFixture Magento/ConfigurableProduct/_files/quote_with_configurable_product.php
      * @expectedException \Exception
-     * @expectedExceptionMessage The %1 Cart doesn't contain the %2 item.
+     * @expectedExceptionMessage Cart %1 doesn't contain item  %2
      */
     public function testUpdateIncorrectItem()
     {
         $qty = 1;
         /** @var \Magento\Quote\Model\Quote  $quote */
-        $quote = $this->objectManager->create(\Magento\Quote\Model\Quote::class);
+        $quote = $this->objectManager->create('Magento\Quote\Model\Quote');
         $quote->load('test_cart_with_configurable', 'reserved_order_id');
         $cartId = $quote->getId();
 
@@ -144,7 +143,7 @@ class CartItemRepositoryTest extends WebapiAbstract
         $this->updateStockForItem(20, 100);
 
         /** @var \Magento\Quote\Model\Quote  $quote */
-        $quote = $this->objectManager->create(\Magento\Quote\Model\Quote::class);
+        $quote = $this->objectManager->create('Magento\Quote\Model\Quote');
         $quote->load('test_cart_with_configurable', 'reserved_order_id');
         $cartId = $quote->getId();
 
@@ -199,7 +198,7 @@ class CartItemRepositoryTest extends WebapiAbstract
     protected function updateStockForItem($itemId, $qty)
     {
         /** @var \Magento\CatalogInventory\Model\Stock\Status $stockStatus */
-        $stockStatus = $this->objectManager->create(\Magento\CatalogInventory\Model\Stock\Status::class);
+        $stockStatus = $this->objectManager->create('Magento\CatalogInventory\Model\Stock\Status');
         $stockStatus->load($itemId, 'product_id');
         if (!$stockStatus->getProductId()) {
             $stockStatus->setProductId($itemId);
@@ -209,7 +208,7 @@ class CartItemRepositoryTest extends WebapiAbstract
         $stockStatus->save();
 
         /** @var \Magento\CatalogInventory\Model\Stock\Item $stockItem */
-        $stockItem = $this->objectManager->create(\Magento\CatalogInventory\Model\Stock\Item::class);
+        $stockItem = $this->objectManager->create('Magento\CatalogInventory\Model\Stock\Item');
         $stockItem->load($itemId, 'product_id');
 
         if (!$stockItem->getProductId()) {
@@ -229,7 +228,7 @@ class CartItemRepositoryTest extends WebapiAbstract
     {
         $qty = 1;
         /** @var \Magento\Quote\Model\Quote  $quote */
-        $quote = $this->objectManager->create(\Magento\Quote\Model\Quote::class);
+        $quote = $this->objectManager->create('Magento\Quote\Model\Quote');
         $quote->load('test_cart_with_configurable', 'reserved_order_id');
         $cartId = $quote->getId();
 
@@ -282,7 +281,7 @@ class CartItemRepositoryTest extends WebapiAbstract
     public function testGetList()
     {
         /** @var \Magento\Quote\Model\Quote  $quote */
-        $quote = $this->objectManager->create(\Magento\Quote\Model\Quote::class);
+        $quote = $this->objectManager->create('Magento\Quote\Model\Quote');
         $quote->load('test_cart_with_configurable', 'reserved_order_id');
         $cartId = $quote->getId();
 
@@ -326,7 +325,7 @@ class CartItemRepositoryTest extends WebapiAbstract
     protected function getRequestData($cartId, $selectedOption = null)
     {
         /** @var \Magento\Catalog\Api\ProductRepositoryInterface $productRepository */
-        $productRepository = $this->objectManager->create(\Magento\Catalog\Api\ProductRepositoryInterface::class);
+        $productRepository = $this->objectManager->create('Magento\Catalog\Api\ProductRepositoryInterface');
         $product = $productRepository->get(self::CONFIGURABLE_PRODUCT_SKU);
 
         $configurableProductOptions = $product->getExtensionAttributes()->getConfigurableProductOptions();

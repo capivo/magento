@@ -1,14 +1,11 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\TestFramework\Mail\Template;
 
-/**
- * Class TransportBuilderMock
- */
 class TransportBuilderMock extends \Magento\Framework\Mail\Template\TransportBuilder
 {
     /**
@@ -41,12 +38,11 @@ class TransportBuilderMock extends \Magento\Framework\Mail\Template\TransportBui
      * Return transport mock.
      *
      * @return \Magento\TestFramework\Mail\TransportInterfaceMock
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getTransport()
     {
         $this->prepareMessage();
         $this->reset();
-        return new \Magento\TestFramework\Mail\TransportInterfaceMock($this->message);
+        return new \Magento\TestFramework\Mail\TransportInterfaceMock();
     }
 }

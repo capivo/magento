@@ -1,17 +1,14 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
+/**
+ * Implementation of the @magentoDataFixture DocBlock annotation
+ */
 namespace Magento\TestFramework\Annotation;
 
-use Magento\Framework\Component\ComponentRegistrar;
-use PHPUnit\Framework\Exception;
-
-/**
- * Implementation of the @magentoDataFixture DocBlock annotation.
- */
 class DataFixture
 {
     /**
@@ -45,11 +42,11 @@ class DataFixture
     /**
      * Handler for 'startTestTransactionRequest' event
      *
-     * @param \PHPUnit\Framework\TestCase $test
+     * @param \PHPUnit_Framework_TestCase $test
      * @param \Magento\TestFramework\Event\Param\Transaction $param
      */
     public function startTestTransactionRequest(
-        \PHPUnit\Framework\TestCase $test,
+        \PHPUnit_Framework_TestCase $test,
         \Magento\TestFramework\Event\Param\Transaction $param
     ) {
         /* Start transaction before applying first fixture to be able to revert them all further */
@@ -65,11 +62,11 @@ class DataFixture
     /**
      * Handler for 'endTestNeedTransactionRollback' event
      *
-     * @param \PHPUnit\Framework\TestCase $test
+     * @param \PHPUnit_Framework_TestCase $test
      * @param \Magento\TestFramework\Event\Param\Transaction $param
      */
     public function endTestTransactionRequest(
-        \PHPUnit\Framework\TestCase $test,
+        \PHPUnit_Framework_TestCase $test,
         \Magento\TestFramework\Event\Param\Transaction $param
     ) {
         /* Isolate other tests from test-specific fixtures */
@@ -85,9 +82,9 @@ class DataFixture
     /**
      * Handler for 'startTransaction' event
      *
-     * @param \PHPUnit\Framework\TestCase $test
+     * @param \PHPUnit_Framework_TestCase $test
      */
-    public function startTransaction(\PHPUnit\Framework\TestCase $test)
+    public function startTransaction(\PHPUnit_Framework_TestCase $test)
     {
         $this->_applyFixtures($this->_getFixtures($test));
     }
@@ -103,12 +100,12 @@ class DataFixture
     /**
      * Retrieve fixtures from annotation
      *
-     * @param \PHPUnit\Framework\TestCase $test
+     * @param \PHPUnit_Framework_TestCase $test
      * @param string $scope
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function _getFixtures(\PHPUnit\Framework\TestCase $test, $scope = null)
+    protected function _getFixtures(\PHPUnit_Framework_TestCase $test, $scope = null)
     {
         if ($scope === null) {
             $annotations = $this->getAnnotations($test);
@@ -127,8 +124,6 @@ class DataFixture
                 $fixtureMethod = [get_class($test), $fixture];
                 if (is_callable($fixtureMethod)) {
                     $result[] = $fixtureMethod;
-                } elseif ($this->isModuleAnnotation($fixture)) {
-                    $result[] = $this->getModulePath($fixture);
                 } else {
                     $result[] = $this->_fixtureBaseDir . '/' . $fixture;
                 }
@@ -138,48 +133,10 @@ class DataFixture
     }
 
     /**
-     * Check is the Annotation like Magento_InventoryApi::Test/_files/products.php
-     *
-     * @param string $fixture
-     * @return bool
-     */
-    private function isModuleAnnotation(string $fixture)
-    {
-        return (strpos($fixture, '::') !== false);
-    }
-
-    /**
-     * Resolve the Fixture
-     *
-     * @param string $fixture
-     * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @SuppressWarnings(PHPMD.StaticAccess)
-     */
-    private function getModulePath(string $fixture)
-    {
-        [$moduleName, $fixtureFile] = explode('::', $fixture, 2);
-
-        $modulePath = (new ComponentRegistrar())->getPath(ComponentRegistrar::MODULE, $moduleName);
-
-        if ($modulePath === null) {
-            throw new \Magento\Framework\Exception\LocalizedException(
-                new \Magento\Framework\Phrase('Can\'t find registered Module with name %1 .', [$moduleName])
-            );
-        }
-
-        return $modulePath . '/' . ltrim($fixtureFile, '/');
-    }
-
-    /**
-     * Get method annotations.
-     *
-     * Overwrites class-defined annotations.
-     *
-     * @param \PHPUnit\Framework\TestCase $test
+     * @param \PHPUnit_Framework_TestCase $test
      * @return array
      */
-    private function getAnnotations(\PHPUnit\Framework\TestCase $test)
+    private function getAnnotations(\PHPUnit_Framework_TestCase $test)
     {
         $annotations = $test->getAnnotations();
         return array_replace($annotations['class'], $annotations['method']);
@@ -188,10 +145,10 @@ class DataFixture
     /**
      * Return is explicit set isolation state
      *
-     * @param \PHPUnit\Framework\TestCase $test
+     * @param \PHPUnit_Framework_TestCase $test
      * @return bool|null
      */
-    protected function getDbIsolationState(\PHPUnit\Framework\TestCase $test)
+    protected function getDbIsolationState(\PHPUnit_Framework_TestCase $test)
     {
         $annotations = $this->getAnnotations($test);
         return isset($annotations[DbIsolation::MAGENTO_DB_ISOLATION])
@@ -214,13 +171,8 @@ class DataFixture
                 require $fixture;
             }
         } catch (\Exception $e) {
-            throw new Exception(
-                sprintf(
-                    "Error in fixture: %s.\n %s\n %s",
-                    json_encode($fixture),
-                    $e->getMessage(),
-                    $e->getTraceAsString()
-                ),
+            throw new \Exception(
+                sprintf("Error in fixture: %s.\n %s", json_encode($fixture), $e->getMessage()),
                 500,
                 $e
             );
@@ -251,8 +203,7 @@ class DataFixture
      */
     protected function _revertFixtures()
     {
-        $appliedFixtures = array_reverse($this->_appliedFixtures);
-        foreach ($appliedFixtures as $fixture) {
+        foreach ($this->_appliedFixtures as $fixture) {
             if (is_callable($fixture)) {
                 $fixture[1] .= 'Rollback';
                 if (is_callable($fixture)) {

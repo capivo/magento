@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -49,7 +49,7 @@ class AssertGroupedProductInItemsOrderedGrid extends AbstractConstraint
         }
         $data = $this->prepareData($products, $orderCreateIndex->getCreateBlock()->getItemsBlock());
 
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $data['fixtureData'],
             $data['pageData'],
             'Grouped product data on order create page not equals to passed from fixture.'

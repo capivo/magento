@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -36,7 +36,7 @@ class AssertProductAttributeIsFilterableInSearch extends AbstractConstraint
         $label = $attribute->hasData('manage_frontend_label')
             ? $attribute->getManageFrontendLabel()
             : $attribute->getFrontendLabel();
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             in_array(strtoupper($label), $catalogCategoryView->getLayeredNavigationBlock()->getFilters()),
             'Attribute is absent in layered navigation on search page.'
         );

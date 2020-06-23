@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -30,7 +30,7 @@ class AssertNewsletterForm extends AbstractAssertForm
         $templateIndex->open()->getNewsletterTemplateGrid()->searchAndOpen(['code' => $template->getCode()]);
         $errors = $this->verifyData($template->getData(), $templateEdit->getEditForm()->getData($template));
 
-        \PHPUnit\Framework\Assert::assertEmpty($errors, $errors);
+        \PHPUnit_Framework_Assert::assertEmpty($errors, $errors);
     }
 
     /**

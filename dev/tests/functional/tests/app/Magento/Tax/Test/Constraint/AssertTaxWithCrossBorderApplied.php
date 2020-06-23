@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -21,7 +21,7 @@ class AssertTaxWithCrossBorderApplied extends AbstractAssertTaxWithCrossBorderAp
     public function assert($actualPrices)
     {
         //Prices verification
-        \PHPUnit\Framework\Assert::assertEmpty(
+        \PHPUnit_Framework_Assert::assertEmpty(
             array_diff($actualPrices[0], $actualPrices[1]),
             'Prices for customers should be equal. Cross border is not applied.'
         );

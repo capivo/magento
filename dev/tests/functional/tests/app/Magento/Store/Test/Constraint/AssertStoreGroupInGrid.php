@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -31,7 +31,7 @@ class AssertStoreGroupInGrid extends AbstractConstraint
     {
         $storeGroupName = $storeGroup->getName();
         $storeIndex->open()->getStoreGrid()->search(['group_title' => $storeGroupName]);
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $storeIndex->getStoreGrid()->isStoreExists($storeGroupName),
             'Store group \'' . $storeGroupName . '\' is not present in grid.'
         );

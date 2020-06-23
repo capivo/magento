@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -10,7 +10,7 @@ use Magento\Framework\Module\ModuleList;
 use Magento\Setup\Console\Command\ConfigSetCommand;
 use Symfony\Component\Console\Tester\CommandTester;
 
-class ConfigSetCommandTest extends \PHPUnit\Framework\TestCase
+class ConfigSetCommandTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Setup\Model\ConfigModel
@@ -29,18 +29,18 @@ class ConfigSetCommandTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        $option = $this->createMock(\Magento\Framework\Setup\Option\TextConfigOption::class);
+        $option = $this->getMock('Magento\Framework\Setup\Option\TextConfigOption', [], [], '', false);
         $option
             ->expects($this->any())
             ->method('getName')
             ->will($this->returnValue('db-host'));
-        $this->configModel = $this->createMock(\Magento\Setup\Model\ConfigModel::class);
+        $this->configModel = $this->getMock('Magento\Setup\Model\ConfigModel', [], [], '', false);
         $this->configModel
             ->expects($this->exactly(2))
             ->method('getAvailableOptions')
             ->will($this->returnValue([$option]));
-        $moduleList = $this->createMock(\Magento\Framework\Module\ModuleList::class);
-        $this->deploymentConfig = $this->createMock(\Magento\Framework\App\DeploymentConfig::class);
+        $moduleList = $this->getMock('Magento\Framework\Module\ModuleList', [], [], '', false);
+        $this->deploymentConfig = $this->getMock('Magento\Framework\App\DeploymentConfig', [], [], '', false);
         $this->command = new ConfigSetCommand($this->configModel, $moduleList, $this->deploymentConfig);
     }
 
@@ -72,7 +72,7 @@ class ConfigSetCommandTest extends \PHPUnit\Framework\TestCase
             ->expects($this->once())
             ->method('process')
             ->with(['db-host' => 'host']);
-        $this->checkInteraction('Y');
+        $this->checkInteraction(true);
     }
 
     public function testExecuteInteractiveWithNo()
@@ -85,35 +85,35 @@ class ConfigSetCommandTest extends \PHPUnit\Framework\TestCase
             ->expects($this->once())
             ->method('process')
             ->with([]);
-        $this->checkInteraction('n');
+        $this->checkInteraction(false);
     }
 
     /**
      * Checks interaction with users on CLI
      *
-     * @param string $interactionType
+     * @param bool $interactionType
      * @return void
      */
     private function checkInteraction($interactionType)
     {
-        $dialog = $this->createMock(\Symfony\Component\Console\Helper\QuestionHelper::class);
+        $dialog = $this->getMock('Symfony\Component\Console\Helper\DialogHelper', [], [], '', false);
         $dialog
             ->expects($this->once())
-            ->method('ask')
+            ->method('askConfirmation')
             ->will($this->returnValue($interactionType));
 
         /** @var \Symfony\Component\Console\Helper\HelperSet|\PHPUnit_Framework_MockObject_MockObject $helperSet */
-        $helperSet = $this->createMock(\Symfony\Component\Console\Helper\HelperSet::class);
+        $helperSet = $this->getMock('Symfony\Component\Console\Helper\HelperSet', [], [], '', false);
         $helperSet
             ->expects($this->once())
             ->method('get')
-            ->with('question')
+            ->with('dialog')
             ->will($this->returnValue($dialog));
         $this->command->setHelperSet($helperSet);
 
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['--db-host' => 'host']);
-        if (strtolower($interactionType) === 'y') {
+        if ($interactionType) {
             $message = 'You saved the new configuration.' . PHP_EOL;
         } else {
             $message = 'You made no changes to the configuration.'.PHP_EOL;

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -26,13 +26,14 @@ use Magento\Mtf\TestCase\Injectable;
  * 6. Click "Submit" button.
  * 7. Perform Asserts.
  *
- * @group Reviews_and_Ratings
+ * @group Reviews_and_Ratings_(MX)
  * @ZephyrId MAGETWO-26618
  */
 class MassActionsProductReviewEntityTest extends Injectable
 {
     /* tags */
     const MVP = 'no';
+    const DOMAIN = 'MX';
     /* end tags */
 
     /**
@@ -102,7 +103,7 @@ class MassActionsProductReviewEntityTest extends Injectable
         $this->reviewIndex->getReviewGrid()->massaction(
             [['title' => $this->review->getTitle()]],
             [$gridActions => $gridStatus],
-            ($gridActions == 'Delete')
+            ($gridActions == 'Delete' ? true : false)
         );
     }
 

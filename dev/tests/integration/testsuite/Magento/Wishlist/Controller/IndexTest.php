@@ -1,13 +1,12 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Wishlist\Controller;
 
-/**
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- */
+use Magento\Framework\View\Element\Message\InterpretationStrategyInterface;
+
 class IndexTest extends \Magento\TestFramework\TestCase\AbstractController
 {
     /**
@@ -28,22 +27,22 @@ class IndexTest extends \Magento\TestFramework\TestCase\AbstractController
     protected function setUp()
     {
         parent::setUp();
-        $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $logger = $this->getMock('Psr\Log\LoggerInterface', [], [], '', false);
         $this->_customerSession = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-            \Magento\Customer\Model\Session::class,
+            'Magento\Customer\Model\Session',
             [$logger]
         );
         /** @var \Magento\Customer\Api\AccountManagementInterface $service */
         $service = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
-            \Magento\Customer\Api\AccountManagementInterface::class
+            'Magento\Customer\Api\AccountManagementInterface'
         );
         $customer = $service->authenticate('customer@example.com', 'password');
         $this->_customerSession->setCustomerDataAsLoggedIn($customer);
 
-        $this->_customerViewHelper = $this->_objectManager->create(\Magento\Customer\Helper\View::class);
+        $this->_customerViewHelper = $this->_objectManager->create('Magento\Customer\Helper\View');
 
         $this->_messages = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-            \Magento\Framework\Message\ManagerInterface::class
+            'Magento\Framework\Message\ManagerInterface'
         );
     }
 
@@ -73,20 +72,8 @@ class IndexTest extends \Magento\TestFramework\TestCase\AbstractController
     {
         $this->dispatch('wishlist/index/index');
         $body = $this->getResponse()->getBody();
-        $this->assertEquals(
-            1,
-            \Magento\TestFramework\Helper\Xpath::getElementsCountForXpath(
-                '//img[contains(@src, "small_image.jpg") and @alt = "Simple Product"]',
-                $body
-            )
-        );
-        $this->assertEquals(
-            1,
-            \Magento\TestFramework\Helper\Xpath::getElementsCountForXpath(
-                '//textarea[contains(@name, "description")]',
-                $body
-            )
-        );
+        $this->assertSelectCount('img[src~="small_image.jpg"][alt="Simple Product"]', 1, $body);
+        $this->assertSelectCount('textarea[name~="description"]', 1, $body);
     }
 
     /**
@@ -96,56 +83,47 @@ class IndexTest extends \Magento\TestFramework\TestCase\AbstractController
      */
     public function testAddActionProductNameXss()
     {
-        /** @var \Magento\Framework\Data\Form\FormKey $formKey */
-        $formKey = $this->_objectManager->get(\Magento\Framework\Data\Form\FormKey::class);
-        $this->getRequest()->setMethod('POST');
-        $this->getRequest()->setPostValue(
-            [
-                'form_key' => $formKey->getFormKey(),
-            ]
+        $this->dispatch('wishlist/index/add/product/1?nocookie=1');
+        $messages = $this->_messages->getMessages()->getItems();
+        $isProductNamePresent = false;
+
+        /** @var InterpretationStrategyInterface $interpretationStrategy */
+        $interpretationStrategy = $this->_objectManager->create(
+            'Magento\Framework\View\Element\Message\InterpretationStrategyInterface'
         );
-
-        /** @var \Magento\Catalog\Api\ProductRepositoryInterface $productRepository */
-        $productRepository = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
-            ->create(\Magento\Catalog\Api\ProductRepositoryInterface::class);
-
-        $product = $productRepository->get('product-with-xss');
-
-        $this->dispatch('wishlist/index/add/product/' . $product->getId() . '?nocookie=1');
-
-        $this->assertSessionMessages(
-            $this->equalTo(
-                [
-                    "\n&lt;script&gt;alert(&quot;xss&quot;);&lt;/script&gt; has been added to your Wish List. "
-                    . 'Click <a href="http://localhost/index.php/">here</a> to continue shopping.',
-                ]
-            ),
-            \Magento\Framework\Message\MessageInterface::TYPE_SUCCESS
-        );
+        foreach ($messages as $message) {
+            if (
+                strpos(
+                    $interpretationStrategy->interpret($message),
+                    '&lt;script&gt;alert(&quot;xss&quot;);&lt;/script&gt;'
+                ) !== false
+            ) {
+                $isProductNamePresent = true;
+            }
+            $this->assertNotContains(
+                '<script>alert("xss");</script>',
+                $interpretationStrategy->interpret($message)
+            );
+        }
+        $this->assertTrue($isProductNamePresent, 'Product name was not found in session messages');
     }
 
     /**
-     * @magentoDbIsolation disabled
      * @magentoDataFixture Magento/Wishlist/_files/wishlist_with_product_qty_increments.php
      */
     public function testAllcartAction()
     {
-        $formKey = $this->_objectManager->get(\Magento\Framework\Data\Form\FormKey::class)->getFormKey();
-        $this->getRequest()->setMethod('POST');
+        $formKey = $this->_objectManager->get('Magento\Framework\Data\Form\FormKey')->getFormKey();
         $this->getRequest()->setParam('form_key', $formKey);
         $this->dispatch('wishlist/index/allcart');
 
         /** @var \Magento\Checkout\Model\Cart $cart */
-        $cart = $this->_objectManager->get(\Magento\Checkout\Model\Cart::class);
+        $cart = $this->_objectManager->get('Magento\Checkout\Model\Cart');
         $quoteCount = $cart->getQuote()->getItemsCollection()->count();
 
         $this->assertEquals(0, $quoteCount);
         $this->assertSessionMessages(
-            $this->contains(
-                htmlspecialchars(
-                    'You can buy this product only in quantities of 5 at a time for "Simple Product".'
-                )
-            ),
+            $this->contains('You can buy this product only in quantities of 5 at a time for "Simple Product".'),
             \Magento\Framework\Message\MessageInterface::TYPE_ERROR
         );
     }
@@ -159,27 +137,26 @@ class IndexTest extends \Magento\TestFramework\TestCase\AbstractController
             ->loadArea(\Magento\Framework\App\Area::AREA_FRONTEND);
 
         $request = [
-            'form_key' => $this->_objectManager->get(\Magento\Framework\Data\Form\FormKey::class)->getFormKey(),
+            'form_key' => $this->_objectManager->get('Magento\Framework\Data\Form\FormKey')->getFormKey(),
             'emails' => 'test@tosend.com',
             'message' => 'message',
             'rss_url' => null, // no rss
         ];
 
         $this->getRequest()->setPostValue($request);
-        $this->getRequest()->setMethod('POST');
 
-        $this->_objectManager->get(\Magento\Framework\Registry::class)->register(
+        $this->_objectManager->get('Magento\Framework\Registry')->register(
             'wishlist',
-            $this->_objectManager->get(\Magento\Wishlist\Model\Wishlist::class)->loadByCustomerId(1)
+            $this->_objectManager->get('Magento\Wishlist\Model\Wishlist')->loadByCustomerId(1)
         );
         $this->dispatch('wishlist/index/send');
 
         /** @var \Magento\TestFramework\Mail\Template\TransportBuilderMock $transportBuilder */
-        $transportBuilder = $this->_objectManager->get(
-            \Magento\TestFramework\Mail\Template\TransportBuilderMock::class
-        );
+        $transportBuilder = $this->_objectManager->get('Magento\TestFramework\Mail\Template\TransportBuilderMock');
 
-        $actualResult = $transportBuilder->getSentMessage()->getBody()->getParts()[0]->getRawContent();
+        $actualResult = \Zend_Mime_Decode::decodeQuotedPrintable(
+            $transportBuilder->getSentMessage()->getBodyHtml()->getContent()
+        );
 
         $this->assertStringMatchesFormat(
             '%A' . $this->_customerViewHelper->getCustomerName($this->_customerSession->getCustomerDataObject())

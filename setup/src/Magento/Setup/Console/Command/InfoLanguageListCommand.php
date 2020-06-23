@@ -1,17 +1,15 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Setup\Console\Command;
 
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Setup\Lists;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\TableFactory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Command\Command;
+use Magento\Framework\Setup\Lists;
 
 /**
  * Command prints list of available language locales
@@ -26,18 +24,11 @@ class InfoLanguageListCommand extends Command
     private $lists;
 
     /**
-     * @var TableFactory
-     */
-    private $tableHelperFactory;
-
-    /**
      * @param Lists $lists
-     * @param TableFactory $tableHelperFactory
      */
-    public function __construct(Lists $lists, TableFactory $tableHelperFactory = null)
+    public function __construct(Lists $lists)
     {
         $this->lists = $lists;
-        $this->tableHelperFactory = $tableHelperFactory ?: ObjectManager::getInstance()->create(TableFactory::class);
         parent::__construct();
     }
 
@@ -57,14 +48,14 @@ class InfoLanguageListCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $tableHelper = $this->tableHelperFactory->create(['output' => $output]);
-        $tableHelper->setHeaders(['Language', 'Code']);
+        $table = $this->getHelperSet()->get('table');
+        $table->setHeaders(['Language', 'Code']);
 
         foreach ($this->lists->getLocaleList() as $key => $locale) {
-            $tableHelper->addRow([$locale, $key]);
+            $table->addRow([$locale, $key]);
         }
 
-        $tableHelper->render();
-        return \Magento\Framework\Console\Cli::RETURN_SUCCESS;
+        $table->render($output);
+
     }
 }

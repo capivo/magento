@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -36,7 +36,7 @@ class AssertIntegrationInGrid extends AbstractConstraint
         ];
 
         $integrationIndexPage->open();
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $integrationIndexPage->getIntegrationGrid()->isRowVisible($filter),
             'Integration \'' . $filter['name'] . '\' is absent in Integration grid.'
         );

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -55,7 +55,7 @@ class Curl extends AbstractCurl implements CheckoutAgreementInterface
         $curl->write($url, $data);
         $response = $curl->read();
         $curl->close();
-        if (strpos($response, 'data-ui-id="messages-message-success"') === false) {
+        if (!strpos($response, 'data-ui-id="messages-message-success"')) {
             throw new \Exception("Checkout agreement creating by curl handler was not successful! Response: $response");
         }
         preg_match('~id\/(\d*?)\/~', $response, $matches);

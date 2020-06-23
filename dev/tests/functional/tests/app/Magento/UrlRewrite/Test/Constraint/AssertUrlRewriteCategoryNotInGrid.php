@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -27,7 +27,7 @@ class AssertUrlRewriteCategoryNotInGrid extends AbstractConstraint
     {
         $urlRewriteIndex->open();
         $filter = ['request_path' => $category->getUrlKey()];
-        \PHPUnit\Framework\Assert::assertFalse(
+        \PHPUnit_Framework_Assert::assertFalse(
             $urlRewriteIndex->getUrlRedirectGrid()->isRowVisible($filter),
             "URL Rewrite with request path '{$category->getUrlKey()}' is present in grid."
         );

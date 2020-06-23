@@ -1,5 +1,5 @@
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -13,9 +13,9 @@ angular.module('data-option', ['ngStorage'])
 
         if ($localStorage.componentType === 'magento2-module') {
             $http.post('index.php/data-option/hasUninstall', {'moduleName' : $localStorage.moduleName})
-                .then(function successCallback(resp) {
-                    $scope.component.hasUninstall = resp.data.hasUninstall;
-                });
+                .success(function(data) {
+                    $scope.component.hasUninstall = data.hasUninstall;
+            });
         }
 
         if ($localStorage.dataOption) {

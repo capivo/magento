@@ -1,24 +1,19 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\View\Layout;
 
-use Magento\Framework\App\State;
 use Magento\Framework\Phrase;
-use Magento\Framework\View\Layout\LayoutCacheKeyInterface;
 
-/**
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- */
-class MergeTest extends \PHPUnit\Framework\TestCase
+class MergeTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * Fixture XML instruction(s) to be used in tests
      */
     // @codingStandardsIgnoreStart
-    const FIXTURE_LAYOUT_XML = '<block class="Magento\Framework\View\Element\Template" template="Magento_Framework::fixture_template_one.phtml"/>';
+    const FIXTURE_LAYOUT_XML = '<block class="Magento\Framework\View\Element\Template" template="fixture_template_one.phtml"/>';
     // @codingStandardsIgnoreEnd
 
     /**
@@ -40,11 +35,6 @@ class MergeTest extends \PHPUnit\Framework\TestCase
      * @var \PHPUnit_Framework_MockObject_MockObject
      */
     protected $_cache;
-
-    /**
-     * @var \Magento\Framework\Serialize\SerializerInterface|\PHPUnit_Framework_MockObject_MockObject
-     */
-    protected $_serializer;
 
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject
@@ -71,75 +61,68 @@ class MergeTest extends \PHPUnit\Framework\TestCase
      */
     protected $pageConfig;
 
-    /**
-     * @var LayoutCacheKeyInterface|\PHPUnit_Framework_MockObject_MockObject
-     */
-    protected $layoutCacheKeyMock;
-
     protected function setUp()
     {
         $files = [];
-        $fileDriver = new \Magento\Framework\Filesystem\Driver\File();
-        foreach ($fileDriver->readDirectory(__DIR__ . '/_mergeFiles/layout/') as $filename) {
+        foreach (glob(__DIR__ . '/_mergeFiles/layout/*.xml') as $filename) {
             $files[] = new \Magento\Framework\View\File($filename, 'Magento_Widget');
         }
-        $fileSource = $this->getMockForAbstractClass(\Magento\Framework\View\File\CollectorInterface::class);
+        $fileSource = $this->getMockForAbstractClass('Magento\Framework\View\File\CollectorInterface');
         $fileSource->expects($this->any())->method('getFiles')->will($this->returnValue($files));
 
-        $pageLayoutFileSource = $this->getMockForAbstractClass(\Magento\Framework\View\File\CollectorInterface::class);
+        $pageLayoutFileSource = $this->getMockForAbstractClass('Magento\Framework\View\File\CollectorInterface');
         $pageLayoutFileSource->expects($this->any())->method('getFiles')->willReturn([]);
 
-        $design = $this->getMockForAbstractClass(\Magento\Framework\View\DesignInterface::class);
+        $design = $this->getMockForAbstractClass('Magento\Framework\View\DesignInterface');
 
-        $this->scope = $this->createMock(\Magento\Framework\Url\ScopeInterface::class);
+        $this->scope = $this->getMock('Magento\Framework\Url\ScopeInterface', [], [], '', false);
         $this->scope->expects($this->any())->method('getId')->will($this->returnValue(20));
-        $scopeResolver = $this->getMockForAbstractClass(\Magento\Framework\Url\ScopeResolverInterface::class);
+        $scopeResolver = $this->getMockForAbstractClass('Magento\Framework\Url\ScopeResolverInterface');
         $scopeResolver->expects($this->once())->method('getScope')->with(null)->will($this->returnValue($this->scope));
 
-        $this->_resource = $this->createMock(\Magento\Widget\Model\ResourceModel\Layout\Update::class);
+        $this->_resource = $this->getMock('Magento\Widget\Model\ResourceModel\Layout\Update', [], [], '', false);
 
-        $this->_appState = $this->createMock(\Magento\Framework\App\State::class);
+        $this->_appState = $this->getMock('Magento\Framework\App\State', [], [], '', false);
 
-        $this->_logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $this->_logger = $this->getMock('Psr\Log\LoggerInterface');
 
-        $this->_layoutValidator = $this->createMock(\Magento\Framework\View\Model\Layout\Update\Validator::class);
+        $this->_layoutValidator = $this->getMock(
+            'Magento\Framework\View\Model\Layout\Update\Validator',
+            [],
+            [],
+            '',
+            false
+        );
 
-        $this->_cache = $this->getMockForAbstractClass(\Magento\Framework\Cache\FrontendInterface::class);
+        $this->_cache = $this->getMockForAbstractClass('Magento\Framework\Cache\FrontendInterface');
 
-        $this->_serializer = $this->getMockForAbstractClass(\Magento\Framework\Serialize\SerializerInterface::class);
-
-        $this->_theme = $this->createMock(\Magento\Theme\Model\Theme::class);
+        $this->_theme = $this->getMock('Magento\Theme\Model\Theme', [], [], '', false, false);
         $this->_theme->expects($this->any())->method('isPhysical')->will($this->returnValue(true));
         $this->_theme->expects($this->any())->method('getArea')->will($this->returnValue('area'));
         $this->_theme->expects($this->any())->method('getId')->will($this->returnValue(100));
 
         $objectHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
 
-        $this->pageConfig = $this->getMockBuilder(\Magento\Framework\View\Page\Config::class)
+        $this->pageConfig = $this->getMockBuilder('Magento\Framework\View\Page\Config')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $readFactory = $this->createMock(\Magento\Framework\Filesystem\File\ReadFactory::class);
-        $fileReader = $this->createMock(\Magento\Framework\Filesystem\File\Read::class);
+        $readFactory = $this->getMock('Magento\Framework\Filesystem\File\ReadFactory', [], [], '', false, false);
+        $fileReader = $this->getMock('Magento\Framework\Filesystem\File\Read', [], [], '', false, false);
         $readFactory->expects($this->any())->method('create')->willReturn($fileReader);
 
-        $fileDriver = $objectHelper->getObject(\Magento\Framework\Filesystem\Driver\File::class);
+        $fileDriver = $objectHelper->getObject('Magento\Framework\Filesystem\Driver\File');
 
         $fileReader->expects($this->any())->method('readAll')->will(
             $this->returnCallback(
                 function ($filename) use ($fileDriver) {
-                    return $fileDriver->fileGetContents(__DIR__ . '/_mergeFiles/layout/' . $filename);
+                    return $fileDriver->fileGetContents(__DIR__ . '/_mergeFiles/layout/'. $filename);
                 }
             )
         );
 
-        $this->layoutCacheKeyMock = $this->getMockForAbstractClass(LayoutCacheKeyInterface::class);
-        $this->layoutCacheKeyMock->expects($this->any())
-            ->method('getCacheKeys')
-            ->willReturn([]);
-
         $this->_model = $objectHelper->getObject(
-            \Magento\Framework\View\Model\Layout\Merge::class,
+            'Magento\Framework\View\Model\Layout\Merge',
             [
                 'design' => $design,
                 'scopeResolver' => $scopeResolver,
@@ -148,13 +131,11 @@ class MergeTest extends \PHPUnit\Framework\TestCase
                 'resource' => $this->_resource,
                 'appState' => $this->_appState,
                 'cache' => $this->_cache,
-                'serializer' => $this->_serializer,
                 'theme' => $this->_theme,
                 'validator' => $this->_layoutValidator,
                 'logger' => $this->_logger,
                 'readFactory' => $readFactory,
-                'pageConfig' => $this->pageConfig,
-                'layoutCacheKey' => $this->layoutCacheKeyMock,
+                'pageConfig' => $this->pageConfig
             ]
         );
     }
@@ -231,7 +212,7 @@ class MergeTest extends \PHPUnit\Framework\TestCase
     {
         return [
             'non-existing handle' => ['non_existing_handle', false],
-            'existing page type' => ['default', true],
+            'existing page type' => ['default', true]
         ];
     }
 
@@ -245,12 +226,10 @@ class MergeTest extends \PHPUnit\Framework\TestCase
         $expectedResult = '
             <root>
                 <body>
-                    <block class="Magento\Framework\View\Element\Template" 
-                           template="Magento_Framework::fixture_template_one.phtml"/>
+                    <block class="Magento\Framework\View\Element\Template" template="fixture_template_one.phtml"/>
                 </body>
                 <body>
-                    <block class="Magento\Framework\View\Element\Template" 
-                           template="Magento_Framework::fixture_template_two.phtml"/>
+                    <block class="Magento\Framework\View\Element\Template" template="fixture_template_two.phtml"/>
                 </body>
             </root>
         ';
@@ -266,8 +245,7 @@ class MergeTest extends \PHPUnit\Framework\TestCase
             <root>
                 <body>
                     <referenceContainer name="main.container">
-                        <block class="Magento\Framework\View\Element\Template" 
-                               template="Magento_Framework::fixture_template_one.phtml"/>
+                        <block class="Magento\Framework\View\Element\Template" template="fixture_template_one.phtml"/>
                     </referenceContainer>
                 </body>
             </root>
@@ -285,16 +263,9 @@ class MergeTest extends \PHPUnit\Framework\TestCase
 
     public function testLoadCache()
     {
-        $cacheValue = [
-            "pageLayout" => "1column",
-            "layout"     => self::FIXTURE_LAYOUT_XML
-        ];
-
         $this->_cache->expects($this->at(0))->method('load')
-            ->with('LAYOUT_area_STORE20_100c6a4ccd050e33acef0553f24ef399961_page_layout_merged')
-            ->will($this->returnValue(json_encode($cacheValue)));
-
-        $this->_serializer->expects($this->once())->method('unserialize')->willReturn($cacheValue);
+            ->with('LAYOUT_area_STORE20_100c6a4ccd050e33acef0553f24ef399961')
+            ->will($this->returnValue(self::FIXTURE_LAYOUT_XML));
 
         $this->assertEmpty($this->_model->getHandles());
         $this->assertEmpty($this->_model->asString());
@@ -422,47 +393,26 @@ class MergeTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Test loading invalid layout
-     *
-     * @expectedException \Exception
-     * @expectedExceptionMessage Layout is invalid.
      */
     public function testLoadWithInvalidLayout()
     {
         $this->_model->addPageHandles(['default']);
 
-        $this->_appState->expects($this->once())->method('getMode')->willReturn(State::MODE_DEVELOPER);
+        $this->_appState->expects($this->any())->method('getMode')->will($this->returnValue('developer'));
 
-        $this->_layoutValidator->expects($this->any())
-            ->method('getMessages')
-            ->willReturn(['testMessage1', 'testMessage2']);
+        $this->_layoutValidator->expects($this->any())->method('getMessages')
+            ->will($this->returnValue(['testMessage1', 'testMessage2']));
 
-        $this->_layoutValidator->expects($this->any())
-            ->method('isValid')
-            ->willThrowException(new \Exception('Layout is invalid.'));
+        $this->_layoutValidator->expects($this->any())->method('isValid')->will($this->returnValue(false));
 
-        // phpcs:ignore Magento2.Security.InsecureFunction
         $suffix = md5(implode('|', $this->_model->getHandles()));
-        $cacheId = "LAYOUT_{$this->_theme->getArea()}_STORE{$this->scope->getId()}"
-            . "_{$this->_theme->getId()}{$suffix}_page_layout_merged";
+        $cacheId = "LAYOUT_{$this->_theme->getArea()}_STORE{$this->scope->getId()}_{$this->_theme->getId()}{$suffix}";
         $messages = $this->_layoutValidator->getMessages();
 
         // Testing error message is logged with logger
         $this->_logger->expects($this->once())->method('info')
-            ->with(
-                'Cache file with merged layout: ' . $cacheId . ' and handles default' . ': ' . array_shift($messages)
-            );
+            ->with('Cache file with merged layout: ' . $cacheId . ': ' . array_shift($messages));
 
         $this->_model->load();
-    }
-
-    /**
-     * @expectedException \Magento\Framework\Config\Dom\ValidationException
-     * @expectedExceptionMessageRegExp /_mergeFiles\/layout\/file_wrong\.xml\' is not valid/
-     */
-    public function testLayoutUpdateFileIsNotValid()
-    {
-        $this->_appState->expects($this->once())->method('getMode')->willReturn(State::MODE_DEVELOPER);
-
-        $this->_model->addPageHandles(['default']);
     }
 }

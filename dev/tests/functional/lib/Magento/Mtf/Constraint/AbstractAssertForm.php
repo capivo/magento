@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -53,7 +53,7 @@ abstract class AbstractAssertForm extends AbstractConstraint
             }
             $formValue = isset($formData[$key]) ? $formData[$key] : null;
             if (is_numeric($formValue)) {
-                $formValue = (float)$formValue;
+                $formValue = floatval($formValue);
             }
 
             if (null === $formValue) {
@@ -118,9 +118,8 @@ abstract class AbstractAssertForm extends AbstractConstraint
 
     /**
      * Sort multidimensional array by paths.
-     *
-     * Pattern path: key/subKey::sortKey.
-     * Example:
+     * Pattern path: key/subKey::sorkKey.
+     * Exapmle:
      * $data = [
      *     'custom_options' => [
      *         'options' => [
@@ -151,6 +150,7 @@ abstract class AbstractAssertForm extends AbstractConstraint
      *
      * @param array $data
      * @param string $path
+     * @param string $path
      * @return array
      * @throws \Exception
      *
@@ -171,17 +171,11 @@ abstract class AbstractAssertForm extends AbstractConstraint
         }
 
         if ($key) {
-            if ($order) {
-                $data[$key] = $this->sortMultidimensionalArray($data[$key], $order);
-            }
-            if ($nextPath) {
-                $data[$key] = $this->sortDataByPath($data[$key], $nextPath);
-            }
+            $data[$key] = $order ? $this->sortMultidimensionalArray($data[$key], $order) : $data[$key];
+            $data[$key] = $nextPath ? $this->sortDataByPath($data[$key], $nextPath) : $data[$key];
         } else {
             $data = $this->sortMultidimensionalArray($data, $order);
-            if ($nextPath) {
-                $data = $this->sortDataByPath($data, $nextPath);
-            }
+            $data = $nextPath ? $this->sortDataByPath($data, $nextPath) : $data;
         }
 
         return $data;
@@ -199,10 +193,13 @@ abstract class AbstractAssertForm extends AbstractConstraint
         $result = [];
         foreach ($data as $key => $value) {
             if (isset($value[$orderKey])) {
-                $key = is_numeric($value[$orderKey]) ? (int)$value[$orderKey] : $value[$orderKey];
+                $orderValue = is_numeric($value[$orderKey]) ? floatval($value[$orderKey]) : $value[$orderKey];
+                $result[$orderValue] = $value;
+            } else {
+                $result[$key] = $value;
             }
-            $result[$key] = $value;
         }
+
         ksort($result);
         return $result;
     }

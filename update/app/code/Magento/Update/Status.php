@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -45,13 +45,6 @@ class Status
     protected $updateErrorFlagFilePath;
 
     /**
-     * PSR-3 compliant logger
-     *
-     * @var \Psr\Log\LoggerInterface
-     */
-    private $logger;
-
-    /**
      * Initialize.
      *
      * @param string|null $statusFilePath
@@ -66,15 +59,13 @@ class Status
         $updateErrorFlagFilePath = null
     ) {
         $this->statusFilePath = $statusFilePath ? $statusFilePath : MAGENTO_BP . '/var/.update_status.txt';
-        $this->logFilePath = $logFilePath ? $logFilePath : MAGENTO_BP . '/var/log/update.log';
+        $this->logFilePath = $logFilePath ? $logFilePath : MAGENTO_BP . '/var/update_status.log';
         $this->updateInProgressFlagFilePath = $updateInProgressFlagFilePath
             ? $updateInProgressFlagFilePath
             : MAGENTO_BP . '/var/.update_in_progress.flag';
         $this->updateErrorFlagFilePath = $updateErrorFlagFilePath
             ? $updateErrorFlagFilePath
             : MAGENTO_BP . '/var/.update_error.flag';
-        $updateLoggerFactory = new UpdateLoggerFactory($this->logFilePath);
-        $this->logger = $updateLoggerFactory->create();
     }
 
     /**
@@ -85,7 +76,7 @@ class Status
     public function get()
     {
         if (file_exists($this->statusFilePath)) {
-            return $this->hideSensitiveData(file_get_contents($this->statusFilePath));
+            return file_get_contents($this->statusFilePath);
         }
         return '';
     }
@@ -96,17 +87,15 @@ class Status
      * Add information to a temporary file which is used for status display on a web page and to a permanent status log.
      *
      * @param string $text
-     * @param string $severity
      * @return $this
      * @throws \RuntimeException
      */
-    public function add($text, $severity = \Psr\Log\LogLevel::INFO)
+    public function add($text)
     {
-        $this->logger->log($severity, $text);
         $currentUtcTime = '[' . date('Y-m-d H:i:s T', time()) . '] ';
         $text = $currentUtcTime . $text;
+        $this->writeMessageToFile($text, $this->logFilePath);
         $this->writeMessageToFile($text, $this->statusFilePath);
-
         return $this;
     }
 
@@ -122,19 +111,6 @@ class Status
         $this->writeMessageToFile($text, $this->logFilePath, false);
         $this->writeMessageToFile($text, $this->statusFilePath, false);
         return $this;
-    }
-
-    /**
-     * Hide sensitive data before it will be showed on a web page
-     *
-     * @param string $text
-     * @return string
-     */
-    private function hideSensitiveData($text)
-    {
-        $text = preg_replace("/(Module) '(\w+)_(\w+)'/", "$1 '$2_******'", $text);
-        $text = preg_replace('#' . MAGENTO_BP . '#', '{magento_root}', $text);
-        return $text;
     }
 
     /**

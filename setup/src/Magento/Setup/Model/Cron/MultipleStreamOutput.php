@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Setup\Model\Cron;
@@ -29,7 +29,7 @@ class MultipleStreamOutput extends Output
     public function __construct(
         array $streams,
         $verbosity = self::VERBOSITY_NORMAL,
-        $decorated = false,
+        $decorated = null,
         OutputFormatterInterface $formatter = null
     ) {
         foreach ($streams as $stream) {

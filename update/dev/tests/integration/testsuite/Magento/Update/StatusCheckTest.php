@@ -1,11 +1,11 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Update;
 
-class StatusCheckTest extends \PHPUnit\Framework\TestCase
+class StatusCheckTest extends \PHPUnit_Framework_TestCase
 {
     const REQUEST_TYPE_AJAX = 'ajax';
 
@@ -96,13 +96,13 @@ class StatusCheckTest extends \PHPUnit\Framework\TestCase
     protected function getResponse($requestType = null)
     {
         if ($requestType === self::REQUEST_TYPE_AJAX) {
-            $_SERVER['PATH_INFO'] = '/status';
+            $_SERVER['HTTP_X_REQUESTED_WITH'] = 'xmlhttprequest';
         }
         ob_start();
         include $this->indexScript;
         $response = ob_get_contents();
         ob_end_clean();
-        unset($_SERVER['PATH_INFO']);
+        unset($_SERVER['HTTP_X_REQUESTED_WITH']);
         return $response;
     }
 }

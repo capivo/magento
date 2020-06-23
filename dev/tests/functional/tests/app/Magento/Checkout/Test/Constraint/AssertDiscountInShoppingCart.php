@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -28,7 +28,7 @@ class AssertDiscountInShoppingCart extends AbstractConstraint
     {
         $checkoutCart->open();
         $checkoutCart->getTotalsBlock()->waitForUpdatedTotals();
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             number_format($cart->getDiscount(), 2),
             $checkoutCart->getTotalsBlock()->getDiscount(),
             'Discount amount in the shopping cart not equals to discount amount from fixture.'

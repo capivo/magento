@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -41,7 +41,7 @@ class AssertGiftMessageInFrontendOrderItems extends AbstractConstraint
         $products = []
     ) {
         $this->objectManager->create(
-            \Magento\Customer\Test\TestStep\LoginCustomerOnFrontendStep::class,
+            'Magento\Customer\Test\TestStep\LoginCustomerOnFrontendStep',
             ['customer' => $customer]
         )->run();
 
@@ -62,11 +62,11 @@ class AssertGiftMessageInFrontendOrderItems extends AbstractConstraint
                     'message' => $itemGiftMessage->getMessage(),
                 ];
             }
-            if ($product->getProductHasWeight() !== 'This item has weight') {
+            if ($product->getProductHasWeight() !== 'Yes') {
                 $expectedData = [];
             }
 
-            \PHPUnit\Framework\Assert::assertEquals(
+            \PHPUnit_Framework_Assert::assertEquals(
                 $expectedData,
                 $customerOrderView->getGiftMessageForItemBlock()->getGiftMessage($product->getName()),
                 'Wrong gift message is displayed on "' . $product->getName() . '" item.'

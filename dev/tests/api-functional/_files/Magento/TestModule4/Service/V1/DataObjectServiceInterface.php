@@ -1,8 +1,10 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
 
 namespace Magento\TestModule4\Service\V1;
 
@@ -44,8 +46,5 @@ interface DataObjectServiceInterface
      * @param \Magento\TestModule4\Service\V1\Entity\ExtensibleRequestInterface $request
      * @return \Magento\TestModule4\Service\V1\Entity\DataObjectResponse
      */
-    public function extensibleDataObject(
-        $id,
-        \Magento\TestModule4\Service\V1\Entity\ExtensibleRequestInterface $request
-    );
+    public function extensibleDataObject($id, \Magento\TestModule4\Service\V1\Entity\ExtensibleRequestInterface $request);
 }

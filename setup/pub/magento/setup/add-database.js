@@ -1,5 +1,5 @@
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -20,14 +20,14 @@ angular.module('add-database', ['ngStorage'])
 
         $scope.testConnection = function () {
             $http.post('index.php/database-check', $scope.db)
-                .then(function successCallback(resp) {
-                    $scope.testConnection.result = resp.data;
-
+                .success(function (data) {
+                    $scope.testConnection.result = data;
                     if ($scope.testConnection.result.success) {
                         $scope.nextState();
                     }
-                }, function errorCallback(resp) {
-                    $scope.testConnection.failed = resp.data;
+                })
+                .error(function (data) {
+                    $scope.testConnection.failed = data;
                 });
         };
 

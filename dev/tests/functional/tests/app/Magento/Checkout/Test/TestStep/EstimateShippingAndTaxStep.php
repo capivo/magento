@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -107,7 +107,6 @@ class EstimateShippingAndTaxStep implements TestStepInterface
     {
         $this->checkoutCart->open();
         $this->checkoutCart->getCartBlock()->waitCartContainerLoading();
-        sleep(20);
         /** @var \Magento\Checkout\Test\Fixture\Cart $cart */
         if ($this->cart !== null) {
             $cart = $this->fixtureFactory->createByCode(

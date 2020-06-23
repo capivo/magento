@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -53,7 +53,7 @@ class AssertFilterProductList extends AbstractConstraint
                 sort($productNames);
                 $pageProductNames = $catalogCategoryView->getListProductBlock()->getProductNames();
                 sort($pageProductNames);
-                \PHPUnit\Framework\Assert::assertEquals($productNames, $pageProductNames);
+                \PHPUnit_Framework_Assert::assertEquals($productNames, $pageProductNames);
             }
             $catalogCategoryView->getLayeredNavigationBlock()->clearAll();
         }

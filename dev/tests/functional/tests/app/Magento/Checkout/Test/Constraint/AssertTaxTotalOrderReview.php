@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -25,7 +25,7 @@ class AssertTaxTotalOrderReview extends AbstractConstraint
     {
         $reviewTaxTotal = $checkoutOnepage->getReviewBlock()->getTax();
 
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $reviewTaxTotal,
             number_format($taxTotal, 2),
             "Tax price '$reviewTaxTotal' not equals with price from data set '$taxTotal'."

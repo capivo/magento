@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -21,14 +21,14 @@ use Magento\Mtf\TestCase\Injectable;
  * 5. Save Tax Rate.
  * 6. Perform all assertions.
  *
- * @group Tax
+ * @group Tax_(CS)
  * @ZephyrId MAGETWO-23286
  */
 class CreateTaxRateEntityTest extends Injectable
 {
     /* tags */
     const MVP = 'yes';
-    const MFTF_MIGRATED = 'yes';
+    const DOMAIN = 'CS';
     /* end tags */
 
     /**

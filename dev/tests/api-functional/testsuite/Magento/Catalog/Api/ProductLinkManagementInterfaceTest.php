@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Api;
@@ -19,7 +19,7 @@ class ProductLinkManagementInterfaceTest extends WebapiAbstract
     const RESOURCE_PATH = '/V1/products/';
 
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
+     * @var \Magento\Framework\ObjectManager
      */
     protected $objectManager;
 
@@ -81,14 +81,13 @@ class ProductLinkManagementInterfaceTest extends WebapiAbstract
 
         $actual = $this->_webApiCall($serviceInfo, ['sku' => $productSku, 'type' => $linkType]);
 
-        $this->assertArrayHasKey(0, $actual);
         $this->assertEquals('simple', $actual[0]['linked_product_type']);
         $this->assertEquals('simple', $actual[0]['linked_product_sku']);
         $this->assertEquals(1, $actual[0]['position']);
     }
 
     /**
-     * @magentoApiDataFixture Magento/Catalog/_files/products_related.php
+     * @magentoApiDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoApiDataFixture Magento/Catalog/_files/product_virtual_in_stock.php
      */
     public function testAssign()
@@ -123,13 +122,9 @@ class ProductLinkManagementInterfaceTest extends WebapiAbstract
 
         $this->_webApiCall($serviceInfo, $arguments);
         $actual = $this->getLinkedProducts($productSku, 'related');
-        array_walk(
-            $actual,
-            function (&$item) {
-                /** @var \Magento\Catalog\Api\Data\ProductLinkInterface $item */
-                $item = $item->__toArray();
-            }
-        );
+        array_walk($actual, function (&$item) {
+            $item = $item->__toArray();
+        });
         $this->assertEquals([$linkData], $actual);
     }
 
@@ -143,7 +138,7 @@ class ProductLinkManagementInterfaceTest extends WebapiAbstract
     protected function getLinkedProducts($sku, $linkType)
     {
         /** @var \Magento\Catalog\Model\ProductLink\Management $linkManagement */
-        $linkManagement = $this->objectManager->get(\Magento\Catalog\Api\ProductLinkManagementInterface::class);
+        $linkManagement = $this->objectManager->get('Magento\Catalog\Api\ProductLinkManagementInterface');
         $linkedProducts = $linkManagement->getLinkedItemsByType($sku, $linkType);
 
         return $linkedProducts;

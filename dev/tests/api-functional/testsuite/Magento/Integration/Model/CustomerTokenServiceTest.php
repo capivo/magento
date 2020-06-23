@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -14,19 +14,16 @@ use Magento\TestFramework\TestCase\WebapiAbstract;
 use Magento\User\Model\User as UserModel;
 use Magento\Framework\Webapi\Exception as HTTPExceptionCodes;
 use Magento\Integration\Model\ResourceModel\Oauth\Token\CollectionFactory;
-use Magento\Integration\Model\Oauth\Token\RequestLog\Config as TokenThrottlerConfig;
-use Magento\Integration\Api\CustomerTokenServiceInterface;
 
 /**
  * api-functional test for \Magento\Integration\Model\CustomerTokenService.
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class CustomerTokenServiceTest extends WebapiAbstract
 {
     const SERVICE_NAME = "integrationCustomerTokenServiceV1";
     const SERVICE_VERSION = "V1";
     const RESOURCE_PATH_CUSTOMER_TOKEN = "/V1/integration/customer/token";
+    const RESOURCE_PATH_ADMIN_TOKEN = "/V1/integration/admin/token";
 
     /**
      * @var CustomerTokenServiceInterface
@@ -49,30 +46,20 @@ class CustomerTokenServiceTest extends WebapiAbstract
     private $userModel;
 
     /**
-     * @var int
-     */
-    private $attemptsCountToLockAccount;
-
-    /**
      * Setup CustomerTokenService
      */
     public function setUp()
     {
         $this->_markTestAsRestOnly();
-        $this->tokenService = Bootstrap::getObjectManager()->get(
-            \Magento\Integration\Model\CustomerTokenService::class
-        );
+        $this->tokenService = Bootstrap::getObjectManager()->get('Magento\Integration\Model\CustomerTokenService');
         $this->customerAccountManagement = Bootstrap::getObjectManager()->get(
-            \Magento\Customer\Api\AccountManagementInterface::class
+            'Magento\Customer\Api\AccountManagementInterface'
         );
         $tokenCollectionFactory = Bootstrap::getObjectManager()->get(
-            \Magento\Integration\Model\ResourceModel\Oauth\Token\CollectionFactory::class
+            'Magento\Integration\Model\ResourceModel\Oauth\Token\CollectionFactory'
         );
         $this->tokenCollection = $tokenCollectionFactory->create();
-        $this->userModel = Bootstrap::getObjectManager()->get(\Magento\User\Model\User::class);
-        /** @var TokenThrottlerConfig $tokenThrottlerConfig */
-        $tokenThrottlerConfig = Bootstrap::getObjectManager()->get(TokenThrottlerConfig::class);
-        $this->attemptsCountToLockAccount = $tokenThrottlerConfig->getMaxFailuresCount();
+        $this->userModel = Bootstrap::getObjectManager()->get('Magento\User\Model\User');
     }
 
     /**
@@ -80,8 +67,9 @@ class CustomerTokenServiceTest extends WebapiAbstract
      */
     public function testCreateCustomerAccessToken()
     {
-        $userName = 'customer@example.com';
+        $customerUserName = 'customer@example.com';
         $password = 'password';
+        $isTokenCorrect = false;
 
         $serviceInfo = [
             'rest' => [
@@ -89,18 +77,29 @@ class CustomerTokenServiceTest extends WebapiAbstract
                 'httpMethod' => \Magento\Framework\Webapi\Rest\Request::HTTP_METHOD_POST,
             ],
         ];
-        $requestData = ['username' => $userName, 'password' => $password];
+        $requestData = ['username' => $customerUserName, 'password' => $password];
         $accessToken = $this->_webApiCall($serviceInfo, $requestData);
 
-        $this->assertToken($accessToken, $userName, $password);
+        $customerData = $this->customerAccountManagement->authenticate($customerUserName, $password);
+
+        /** @var $this->tokenCollection \Magento\Integration\Model\ResourceModel\Oauth\Token\Collection */
+        $this->tokenCollection->addFilterByCustomerId($customerData->getId());
+
+        foreach ($this->tokenCollection->getItems() as $item) {
+            /** @var $item TokenModel */
+            if ($item->getToken() == $accessToken) {
+                $isTokenCorrect = true;
+            }
+        }
+        $this->assertTrue($isTokenCorrect);
     }
 
     /**
      * @dataProvider validationDataProvider
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function testCreateCustomerAccessTokenEmptyOrNullCredentials($username, $password)
     {
-        $noExceptionOccurred = false;
         try {
             $serviceInfo = [
                 'rest' => [
@@ -108,14 +107,10 @@ class CustomerTokenServiceTest extends WebapiAbstract
                     'httpMethod' => \Magento\Framework\Webapi\Rest\Request::HTTP_METHOD_POST,
                 ],
             ];
-            $requestData = ['username' => $username, 'password' => $password];
+            $requestData = ['username' => '', 'password' => ''];
             $this->_webApiCall($serviceInfo, $requestData);
-            $noExceptionOccurred = true;
         } catch (\Exception $e) {
             $this->assertInputExceptionMessages($e);
-        }
-        if ($noExceptionOccurred) {
-            $this->fail("Exception was expected to be thrown when provided credentials are invalid.");
         }
     }
 
@@ -123,7 +118,6 @@ class CustomerTokenServiceTest extends WebapiAbstract
     {
         $customerUserName = 'invalid';
         $password = 'invalid';
-        $noExceptionOccurred = false;
         try {
             $serviceInfo = [
                 'rest' => [
@@ -133,13 +127,12 @@ class CustomerTokenServiceTest extends WebapiAbstract
             ];
             $requestData = ['username' => $customerUserName, 'password' => $password];
             $this->_webApiCall($serviceInfo, $requestData);
-            $noExceptionOccurred = true;
         } catch (\Exception $e) {
-            $this->assertInvalidCredentialsException($e);
+            $this->assertEquals(HTTPExceptionCodes::HTTP_UNAUTHORIZED, $e->getCode());
+            $exceptionData = $this->processRestExceptionResult($e);
+            $expectedExceptionData = ['message' => 'Invalid login or password.'];
         }
-        if ($noExceptionOccurred) {
-            $this->fail("Exception was expected to be thrown when provided credentials are invalid.");
-        }
+        $this->assertEquals($expectedExceptionData, $exceptionData);
     }
 
     /**
@@ -165,16 +158,16 @@ class CustomerTokenServiceTest extends WebapiAbstract
         $this->assertEquals(HTTPExceptionCodes::HTTP_BAD_REQUEST, $e->getCode());
         $exceptionData = $this->processRestExceptionResult($e);
         $expectedExceptionData = [
-            'message' => 'One or more input exceptions have occurred.',
+            'message' => InputException::DEFAULT_MESSAGE,
             'errors' => [
                 [
-                    'message' => '"%fieldName" is required. Enter and try again.',
+                    'message' => InputException::REQUIRED_FIELD,
                     'parameters' => [
                         'fieldName' => 'username',
                     ],
                 ],
                 [
-                    'message' => '"%fieldName" is required. Enter and try again.',
+                    'message' => InputException::REQUIRED_FIELD,
                     'parameters' => [
                         'fieldName' => 'password',
                     ]
@@ -182,135 +175,5 @@ class CustomerTokenServiceTest extends WebapiAbstract
             ],
         ];
         $this->assertEquals($expectedExceptionData, $exceptionData);
-    }
-
-    /**
-     * @magentoApiDataFixture Magento/Customer/_files/customer.php
-     */
-    public function testThrottlingMaxAttempts()
-    {
-        $userNameFromFixture = 'customer@example.com';
-        $passwordFromFixture = 'password';
-
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => self::RESOURCE_PATH_CUSTOMER_TOKEN,
-                'httpMethod' => \Magento\Framework\Webapi\Rest\Request::HTTP_METHOD_POST,
-            ],
-        ];
-        $invalidCredentials = [
-            'username' => $userNameFromFixture,
-            'password' => 'invalid',
-        ];
-        $validCredentials = [
-            'username' => $userNameFromFixture,
-            'password' => $passwordFromFixture,
-        ];
-
-        /* Try to get token using invalid credentials for 5 times (account is locked after 6 attempts) */
-        $noExceptionOccurred = false;
-        for ($i = 0; $i < ($this->attemptsCountToLockAccount - 1); $i++) {
-            try {
-                $this->_webApiCall($serviceInfo, $invalidCredentials);
-                $noExceptionOccurred = true;
-            } catch (\Exception $e) {
-            }
-        }
-        if ($noExceptionOccurred) {
-            $this->fail(
-                "Precondition failed: exception should have occurred when token was requested with invalid credentials."
-            );
-        }
-
-        /** On 6th attempt it still should be possible to get token if valid credentials are specified */
-        $accessToken = $this->_webApiCall($serviceInfo, $validCredentials);
-        $this->assertToken($accessToken, $userNameFromFixture, $passwordFromFixture);
-    }
-
-    /**
-     * @magentoApiDataFixture Magento/Customer/_files/customer.php
-     */
-    public function testThrottlingAccountLockout()
-    {
-        $userNameFromFixture = 'customer@example.com';
-        $passwordFromFixture = 'password';
-
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => self::RESOURCE_PATH_CUSTOMER_TOKEN,
-                'httpMethod' => \Magento\Framework\Webapi\Rest\Request::HTTP_METHOD_POST,
-            ],
-        ];
-        $invalidCredentials = [
-            'username' => $userNameFromFixture,
-            'password' => 'invalid',
-        ];
-        $validCredentials = [
-            'username' => $userNameFromFixture,
-            'password' => $passwordFromFixture,
-        ];
-
-        /* Try to get token using invalid credentials for 5 times (account would be locked after 6 attempts) */
-        $noExceptionOccurred = false;
-        for ($i = 0; $i < $this->attemptsCountToLockAccount; $i++) {
-            try {
-                $this->_webApiCall($serviceInfo, $invalidCredentials);
-                $noExceptionOccurred = true;
-            } catch (\Exception $e) {
-                $this->assertInvalidCredentialsException($e);
-            }
-            if ($noExceptionOccurred) {
-                $this->fail("Exception was expected to be thrown when provided credentials are invalid.");
-            }
-        }
-
-        $noExceptionOccurred = false;
-        try {
-            $this->_webApiCall($serviceInfo, $validCredentials);
-            $noExceptionOccurred = true;
-        } catch (\Exception $e) {
-            $this->assertInvalidCredentialsException($e);
-        }
-        if ($noExceptionOccurred) {
-            $this->fail("Exception was expected to be thrown because account should have been locked at this point.");
-        }
-    }
-
-    /**
-     * Make sure that status code and message are correct in case of authentication failure.
-     *
-     * @param \Exception $e
-     */
-    private function assertInvalidCredentialsException($e)
-    {
-        $this->assertEquals(HTTPExceptionCodes::HTTP_UNAUTHORIZED, $e->getCode(), "Response HTTP code is invalid.");
-        $exceptionData = $this->processRestExceptionResult($e);
-        $expectedExceptionData = [
-            'message' => 'The account sign-in was incorrect or your account is disabled temporarily. '
-                . 'Please wait and try again later.'
-        ];
-        $this->assertEquals($expectedExceptionData, $exceptionData, "Exception message is invalid.");
-    }
-
-    /**
-     * Make sure provided token is valid and belongs to the specified user.
-     *
-     * @param string $accessToken
-     * @param string $userName
-     * @param string $password
-     */
-    private function assertToken($accessToken, $userName, $password)
-    {
-        $customerData = $this->customerAccountManagement->authenticate($userName, $password);
-        /** @var $this ->tokenCollection \Magento\Integration\Model\ResourceModel\Oauth\Token\Collection */
-        $this->tokenCollection->addFilterByCustomerId($customerData->getId());
-        $isTokenCorrect = false;
-        foreach ($this->tokenCollection->getItems() as $item) {
-            /** @var $item TokenModel */
-            if ($item->getToken() == $accessToken) {
-                $isTokenCorrect = true;
-            }
-        }
-        $this->assertTrue($isTokenCorrect);
     }
 }

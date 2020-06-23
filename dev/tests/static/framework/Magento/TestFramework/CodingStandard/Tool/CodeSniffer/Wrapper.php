@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -9,18 +9,19 @@
  */
 namespace Magento\TestFramework\CodingStandard\Tool\CodeSniffer;
 
-use PHP_CodeSniffer\Config;
-use PHP_CodeSniffer\Runner;
-
-/**
- * PHP Code Sniffer wrapper class
- */
-class Wrapper extends Runner
+class Wrapper extends \PHP_CodeSniffer_CLI
 {
     /**
-     * @var array
+     * Emulate console arguments
+     *
+     * @param $values
+     * @return \Magento\TestFramework\CodingStandard\Tool\CodeSniffer\Wrapper
      */
-    private $settings = [];
+    public function setValues($values)
+    {
+        $this->values = $values;
+        return $this;
+    }
 
     /**
      * Return the current version of php code sniffer
@@ -30,41 +31,10 @@ class Wrapper extends Runner
     public function version()
     {
         $version = '0.0.0';
-        if (defined('\PHP_CodeSniffer\Config::VERSION')) {
-            $version = Config::VERSION;
+        if (defined('\PHP_CodeSniffer::VERSION')) {
+            $phpcs = new \PHP_CodeSniffer();
+            $version = $phpcs::VERSION;
         }
         return $version;
-    }
-
-    /**
-     * Initialize PHPCS runner and modifies the configuration settings
-     *
-     * @throws \PHP_CodeSniffer\Exceptions\DeepExitException
-     */
-    public function init()
-    {
-        $this->config->extensions = $this->settings['extensions'];
-        unset($this->settings['extensions']);
-
-        $settings = $this->config->getSettings();
-        unset($settings['files']);
-
-        $this->config->setSettings($settings);
-
-        $this->config->setSettings(array_replace_recursive(
-            $this->config->getSettings(),
-            $this->settings
-        ));
-        return parent::init();
-    }
-
-    /**
-     * Sets the settings
-     *
-     * @param array $settings
-     */
-    public function setSettings($settings)
-    {
-        $this->settings = $settings;
     }
 }

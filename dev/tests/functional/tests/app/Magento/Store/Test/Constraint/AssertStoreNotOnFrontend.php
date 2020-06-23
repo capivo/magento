@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -36,7 +36,7 @@ class AssertStoreNotOnFrontend extends AbstractConstraint
             ? false // if only one store view is assigned to store group
             : $cmsIndex->getStoreSwitcherBlock()->isStoreViewVisible($store);
 
-        \PHPUnit\Framework\Assert::assertFalse(
+        \PHPUnit_Framework_Assert::assertFalse(
             $isStoreViewVisible,
             "Store view is visible in dropdown on CmsIndex page"
         );

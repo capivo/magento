@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -71,6 +71,6 @@ abstract class AbstractAssertTaxRuleIsAppliedToAllPricesDownloadable extends Abs
         $actualPrices = $this->getTotals($actualPrices);
         //Prices verification
         $message = 'Prices from dataset should be equal to prices on frontend';
-        \PHPUnit\Framework\Assert::assertEquals($prices, array_filter($actualPrices), $message);
+        \PHPUnit_Framework_Assert::assertEquals($prices, array_filter($actualPrices), $message);
     }
 }

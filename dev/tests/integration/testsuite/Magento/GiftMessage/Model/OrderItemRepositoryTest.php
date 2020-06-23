@@ -1,12 +1,11 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\GiftMessage\Model;
 
-class OrderItemRepositoryTest extends \PHPUnit\Framework\TestCase
+class OrderItemRepositoryTest extends \PHPUnit_Framework_TestCase
 {
     /** @var \Magento\Framework\ObjectManagerInterface */
     protected $objectManager;
@@ -21,21 +20,22 @@ class OrderItemRepositoryTest extends \PHPUnit\Framework\TestCase
     {
         $this->objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
 
-        $this->message = $this->objectManager->create(\Magento\GiftMessage\Model\Message::class);
+        $this->message = $this->objectManager->create('Magento\GiftMessage\Model\Message');
         $this->message->setSender('Romeo');
         $this->message->setRecipient('Mercutio');
         $this->message->setMessage('I thought all for the best.');
 
         $this->giftMessageOrderItemRepository = $this->objectManager->create(
-            \Magento\GiftMessage\Model\OrderItemRepository::class
+            'Magento\GiftMessage\Model\OrderItemRepository'
         );
+
     }
 
     protected function tearDown()
     {
-        $this->objectManager = null;
-        $this->message = null;
-        $this->giftMessageOrderItemRepository = null;
+        unset($this->objectManager);
+        unset($this->message);
+        unset($this->giftMessageOrderItemRepository);
     }
 
     /**
@@ -45,7 +45,7 @@ class OrderItemRepositoryTest extends \PHPUnit\Framework\TestCase
     public function testGet()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->objectManager->create(\Magento\Sales\Model\Order::class)->loadByIncrementId('100000001');
+        $order = $this->objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId('100000001');
         /** @var \Magento\Sales\Api\Data\OrderItemInterface $orderItem */
         $orderItem = $order->getItems();
         $orderItem = array_shift($orderItem);
@@ -61,12 +61,12 @@ class OrderItemRepositoryTest extends \PHPUnit\Framework\TestCase
      * @magentoDataFixture Magento/GiftMessage/_files/order_with_message.php
      * @magentoConfigFixture default_store sales/gift_options/allow_items 1
      * @expectedException \Magento\Framework\Exception\NoSuchEntityException
-     * @expectedExceptionMessage No item with the provided ID was found in the Order. Verify the ID and try again.
+     * @expectedExceptionMessage There is no item with provided id in the order
      */
     public function testGetNoProvidedItemId()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->objectManager->create(\Magento\Sales\Model\Order::class)->loadByIncrementId('100000001');
+        $order = $this->objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId('100000001');
         /** @var \Magento\Sales\Api\Data\OrderItemInterface $orderItem */
         $orderItem = $order->getItems();
         $orderItem = array_shift($orderItem);
@@ -82,7 +82,7 @@ class OrderItemRepositoryTest extends \PHPUnit\Framework\TestCase
     public function testSave()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->objectManager->create(\Magento\Sales\Model\Order::class)->loadByIncrementId('100000001');
+        $order = $this->objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId('100000001');
         /** @var \Magento\Sales\Api\Data\OrderItemInterface $orderItem */
         $orderItem = $order->getItems();
         $orderItem = array_shift($orderItem);
@@ -102,16 +102,17 @@ class OrderItemRepositoryTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('I thought all for the best.', $message->getMessage());
     }
 
+
     /**
      * @magentoDataFixture Magento/Sales/_files/order.php
      * @magentoConfigFixture default_store sales/gift_options/allow_items 0
      * @expectedException \Magento\Framework\Exception\CouldNotSaveException
-     * @expectedExceptionMessage The gift message isn't available.
+     * @expectedExceptionMessage Gift Message is not available
      */
     public function testSaveMessageIsNotAvailable()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->objectManager->create(\Magento\Sales\Model\Order::class)->loadByIncrementId('100000001');
+        $order = $this->objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId('100000001');
         /** @var \Magento\Sales\Api\Data\OrderItemInterface $orderItem */
         $orderItem = $order->getItems();
         $orderItem = array_shift($orderItem);
@@ -124,12 +125,12 @@ class OrderItemRepositoryTest extends \PHPUnit\Framework\TestCase
      * @magentoDataFixture Magento/GiftMessage/_files/virtual_order.php
      * @magentoConfigFixture default_store sales/gift_options/allow_items 1
      * @expectedException \Magento\Framework\Exception\State\InvalidTransitionException
-     * @expectedExceptionMessage Gift messages can't be used for virtual products.
+     * @expectedExceptionMessage Gift Messages is not applicable for virtual products
      */
     public function testSaveMessageIsVirtual()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->objectManager->create(\Magento\Sales\Model\Order::class)->loadByIncrementId('100000001');
+        $order = $this->objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId('100000001');
         /** @var \Magento\Sales\Api\Data\OrderItemInterface $orderItem */
         $orderItem = $order->getItems();
         $orderItem = array_shift($orderItem);
@@ -142,12 +143,12 @@ class OrderItemRepositoryTest extends \PHPUnit\Framework\TestCase
      * @magentoDataFixture Magento/GiftMessage/_files/empty_order.php
      * @magentoConfigFixture default_store sales/gift_options/allow_items 1
      * @expectedException  \Magento\Framework\Exception\NoSuchEntityException
-     * @expectedExceptionMessage No item with the provided ID was found in the Order. Verify the ID and try again.
+     * @expectedExceptionMessage There is no item with provided id in the order
      */
     public function testSaveMessageNoProvidedItemId()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->objectManager->create(\Magento\Sales\Model\Order::class)->loadByIncrementId('100000001');
+        $order = $this->objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId('100000001');
         /** @var \Magento\Sales\Api\Data\OrderItemInterface $orderItem */
         $orderItem = $order->getItems();
         $orderItem = array_shift($orderItem);

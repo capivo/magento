@@ -1,8 +1,10 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
 
 namespace Magento\CatalogInventory\Api;
 
@@ -99,14 +101,14 @@ class StockItemTest extends WebapiAbstract
 
         /** @var \Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory $stockItemDetailsDo */
         $stockItemDetailsDo = $this->objectManager
-            ->get(\Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory::class)
+            ->get('Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory')
             ->create();
         /** @var \Magento\Framework\Api\DataObjectHelper $dataObjectHelper */
-        $dataObjectHelper = $this->objectManager->get(\Magento\Framework\Api\DataObjectHelper::class);
+        $dataObjectHelper = $this->objectManager->get('Magento\Framework\Api\DataObjectHelper');
         $dataObjectHelper->populateWithArray(
             $stockItemDetailsDo,
             $newData,
-            \Magento\CatalogInventory\Api\Data\StockItemInterface::class
+            '\Magento\CatalogInventory\Api\Data\StockItemInterface'
         );
         $data = $stockItemDetailsDo->getData();
         $data['show_default_notification_message'] = false;
@@ -114,11 +116,10 @@ class StockItemTest extends WebapiAbstract
         $this->assertEquals($stockItemOld['item_id'], $this->_webApiCall($serviceInfo, $arguments));
 
         /** @var \Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory $stockItemFactory */
-        $stockItemFactory = $this->objectManager
-            ->get(\Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory::class);
+        $stockItemFactory = $this->objectManager->get('Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory');
         $stockItem = $stockItemFactory->create();
         /** @var \Magento\CatalogInventory\Model\ResourceModel\Stock\Item $stockItemResource */
-        $stockItemResource = $this->objectManager->get(\Magento\CatalogInventory\Model\ResourceModel\Stock\Item::class);
+        $stockItemResource = $this->objectManager->get('Magento\CatalogInventory\Model\ResourceModel\Stock\Item');
         $stockItemResource->loadByProductId($stockItem, $stockItemOld['product_id'], $stockItemOld['stock_id']);
         $expectedResult['item_id'] = $stockItem->getItemId();
         $this->assertEquals($expectedResult, array_intersect_key($stockItem->getData(), $expectedResult));

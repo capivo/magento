@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -35,7 +35,7 @@ class AssertCustomerIsSubscribedToNewsletter extends AbstractConstraint
         ];
 
         $subscriberIndex->open();
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $subscriberIndex->getSubscriberGrid()->isRowVisible($filter),
             'Customer with email \'' . $customer->getEmail() . '\' is absent in Newsletter Subscribers grid.'
         );

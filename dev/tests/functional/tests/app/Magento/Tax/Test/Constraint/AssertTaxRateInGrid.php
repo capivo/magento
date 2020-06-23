@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -40,7 +40,7 @@ class AssertTaxRateInGrid extends AbstractConstraint
             : $data['zip_from'] . '-' . $data['zip_to'];
 
         $taxRateIndexPage->open();
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $taxRateIndexPage->getTaxRateGrid()->isRowVisible($filter),
             'Tax Rate \'' . $filter['code'] . '\' is absent in Tax Rate grid.'
         );

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -30,7 +30,7 @@ class AssertOrderStatusNotAssigned extends AbstractConstraint
     public function processAssert(OrderStatus $orderStatus, OrderStatusIndex $orderStatusIndex)
     {
         $statusLabel = $orderStatus->getLabel();
-        \PHPUnit\Framework\Assert::assertFalse(
+        \PHPUnit_Framework_Assert::assertFalse(
             $orderStatusIndex->open()->getOrderStatusGrid()->isRowVisible(
                 ['label' => $statusLabel, 'state' => $orderStatus->getState()]
             ),

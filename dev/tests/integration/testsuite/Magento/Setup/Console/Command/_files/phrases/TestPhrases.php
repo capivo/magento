@@ -1,14 +1,15 @@
 <?php
 /***
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
 
 use Magento\Framework\Phrase;
 
 /**
  * @SuppressWarnings(PHPMD)
- * @codingStandardsIgnoreStart
  */
 class TestPhrases
 {
@@ -28,8 +29,7 @@ class TestPhrases
         // Phrase objects
         $phraseObjects = [
             // Single concatenation
-            new Phrase('first part'
-                . ' second part'),
+            new Phrase('first part' . ' second part'),
             new Phrase('first part' . ' second part' . ' third part'),
 
             // Multiple concatenation
@@ -37,11 +37,7 @@ class TestPhrases
             new Phrase('first part of concat' . ' second part with one variable placeholder %1', $str1),
             new Phrase('first part of concat' . ' second part with two placeholders %1, %2', $str1, $str2),
             new Phrase('first part of concat' . ' second part' . ' third part with one placeholder %1', 'arg'),
-            new Phrase(
-                'first part of concat' . ' second part' . ' third part with two placeholders %1, %2',
-                $str1,
-                $str2
-            ),
+            new Phrase('first part of concat' . ' second part' . ' third part with two placeholders %1, %2', $str1, $str2),
 
             // Escaped quotes
             new Phrase('string with escaped \'single quotes\''),
@@ -87,7 +83,5 @@ class TestPhrases
             __("string with escaped \"double quotes\""),
             __("string with placeholder in escaped double quotes \"%1\"", "arg"),
         ];
-
-        $unclosedApostrophePhrase = __('string that\'s got an unclosed single quote in it');
     }
 }

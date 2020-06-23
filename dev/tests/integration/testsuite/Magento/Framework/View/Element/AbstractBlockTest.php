@@ -1,23 +1,17 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\View\Element;
 
-use Magento\Framework\Math\Random;
-use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Framework\Session\SidResolverInterface;
-use Magento\TestFramework\Helper\Bootstrap;
-
 /**
  * @magentoAppIsolation enabled
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class AbstractBlockTest extends \PHPUnit\Framework\TestCase
+class AbstractBlockTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var AbstractBlock
+     * @var \Magento\Framework\View\Element\AbstractBlock
      */
     protected $_block;
 
@@ -28,29 +22,22 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
 
     protected static $_mocks = [];
 
-    /**
-     * @var SessionManagerInterface
-     */
-    private $session;
-
     protected function setUp()
     {
-        /** @var \Magento\Framework\App\State $state */
-        $state = Bootstrap::getObjectManager()->get(\Magento\Framework\App\State::class);
-        $state->setAreaCode('frontend');
-        /** @var \Magento\Framework\View\DesignInterface $design */
-        $design = Bootstrap::getObjectManager()->get(\Magento\Framework\View\DesignInterface::class);
-        $design->setDefaultDesignTheme();
+        \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get('Magento\Framework\App\State')
+            ->setAreaCode('frontend');
+        \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
+            'Magento\Framework\View\DesignInterface'
+        )->setDefaultDesignTheme();
         $this->_block = $this->getMockForAbstractClass(
-            AbstractBlock::class,
+            'Magento\Framework\View\Element\AbstractBlock',
             [
-                Bootstrap::getObjectManager()->get(
-                    \Magento\Framework\View\Element\Context::class
+                \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
+                    'Magento\Framework\View\Element\Context'
                 ),
                 ['module_name' => 'Magento_Theme']
             ]
         );
-        $this->session = Bootstrap::getObjectManager()->get(SessionManagerInterface::class);
     }
 
     /**
@@ -69,7 +56,7 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
 
     public function testGetRequest()
     {
-        $this->assertInstanceOf(\Magento\Framework\App\RequestInterface::class, $this->_block->getRequest());
+        $this->assertInstanceOf('Magento\Framework\App\RequestInterface', $this->_block->getRequest());
     }
 
     /**
@@ -81,7 +68,7 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($this->_block->getParentBlock());
 
         // Need to create blocks through layout
-        $parentBlock = $this->_createBlockWithLayout('block1', 'block1', \Magento\Framework\View\Element\Text::class);
+        $parentBlock = $this->_createBlockWithLayout('block1', 'block1', 'Magento\Framework\View\Element\Text');
         $childBlock = $this->_createBlockWithLayout('block2', 'block2');
 
         $this->assertEmpty($childBlock->getParentBlock());
@@ -97,14 +84,14 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
         $parentBlock = $this->_createBlockWithLayout(
             'testAddChild',
             'testAddChild',
-            \Magento\Framework\View\Element\Text::class
+            'Magento\Framework\View\Element\Text'
         );
         $child = $parentBlock->addChild(
             'testAddChildAlias',
-            \Magento\Framework\View\Element\Text::class,
+            'Magento\Framework\View\Element\Text',
             ['content' => 'content']
         );
-        $this->assertInstanceOf(\Magento\Framework\View\Element\Text::class, $child);
+        $this->assertInstanceOf('Magento\Framework\View\Element\Text', $child);
         $this->assertEquals('testAddChild.testAddChildAlias', $child->getNameInLayout());
         $this->assertEquals($child, $parentBlock->getChildBlock('testAddChildAlias'));
         $this->assertEquals('content', $child->getContent());
@@ -120,13 +107,13 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
 
         // Setting second time, along with the layout
         $layout = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-            \Magento\Framework\View\LayoutInterface::class
+            'Magento\Framework\View\LayoutInterface'
         );
-        $layout->createBlock(\Magento\Framework\View\Element\Template::class, $name);
+        $layout->createBlock('Magento\Framework\View\Element\Template', $name);
         $block = $layout->getBlock($name);
-        $this->assertInstanceOf(AbstractBlock::class, $block);
+        $this->assertInstanceOf('Magento\Framework\View\Element\AbstractBlock', $block);
         $block->setNameInLayout($name);
-        $this->assertInstanceOf(AbstractBlock::class, $layout->getBlock($name));
+        $this->assertInstanceOf('Magento\Framework\View\Element\AbstractBlock', $layout->getBlock($name));
         $this->assertEquals($name, $block->getNameInLayout());
         $this->assertTrue($layout->hasElement($name));
         $newName = 'new_name';
@@ -253,15 +240,15 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
         // With layout
         /** @var $layout \Magento\Framework\View\Layout */
         $layout = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-            \Magento\Framework\View\LayoutInterface::class
+            'Magento\Framework\View\LayoutInterface'
         );
-        $child = $layout->createBlock(\Magento\Framework\View\Element\Text::class, $childName);
+        $child = $layout->createBlock('Magento\Framework\View\Element\Text', $childName);
         $layout->addBlock($this->_block, $parentName);
 
         $this->_block->setChild($childAlias, $child);
         $result = $this->_block->getChildBlock($childAlias);
 
-        $this->assertInstanceOf(\Magento\Framework\View\Element\Text::class, $result);
+        $this->assertInstanceOf('Magento\Framework\View\Element\Text', $result);
         $this->assertEquals($childName, $result->getNameInLayout());
         $this->assertEquals($child, $result);
     }
@@ -279,8 +266,8 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
 
         // With layout
         $parent = $this->_createBlockWithLayout('parent', 'parent');
-        $blockOne = $this->_createBlockWithLayout('block1', 'block1', \Magento\Framework\View\Element\Text::class);
-        $blockTwo = $this->_createBlockWithLayout('block2', 'block2', \Magento\Framework\View\Element\Text::class);
+        $blockOne = $this->_createBlockWithLayout('block1', 'block1', 'Magento\Framework\View\Element\Text');
+        $blockTwo = $this->_createBlockWithLayout('block2', 'block2', 'Magento\Framework\View\Element\Text');
         $blockOne->setText('one');
         $blockTwo->setText('two');
         $parent->insert($blockTwo, '-', false, 'block2');
@@ -310,10 +297,10 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
         $parent1 = $this->_createBlockWithLayout('parent1', 'parent1');
         $parent2 = $this->_createBlockWithLayout('parent2', 'parent2');
 
-        $block1 = $this->_createBlockWithLayout('block1', 'block1', \Magento\Framework\View\Element\Text::class);
-        $block2 = $this->_createBlockWithLayout('block2', 'block2', \Magento\Framework\View\Element\Text::class);
-        $block3 = $this->_createBlockWithLayout('block3', 'block3', \Magento\Framework\View\Element\Text::class);
-        $block4 = $this->_createBlockWithLayout('block4', 'block4', \Magento\Framework\View\Element\Text::class);
+        $block1 = $this->_createBlockWithLayout('block1', 'block1', 'Magento\Framework\View\Element\Text');
+        $block2 = $this->_createBlockWithLayout('block2', 'block2', 'Magento\Framework\View\Element\Text');
+        $block3 = $this->_createBlockWithLayout('block3', 'block3', 'Magento\Framework\View\Element\Text');
+        $block4 = $this->_createBlockWithLayout('block4', 'block4', 'Magento\Framework\View\Element\Text');
 
         $block1->setText('one');
         $block2->setText('two');
@@ -333,9 +320,9 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
         // Without layout
         /** @var $blockFactory \Magento\Framework\View\Element\BlockFactory */
         $blockFactory = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-            \Magento\Framework\View\Element\BlockFactory::class
+            'Magento\Framework\View\Element\BlockFactory'
         );
-        $block1 = $blockFactory->createBlock(\Magento\Framework\View\Element\Text::class);
+        $block1 = $blockFactory->createBlock('Magento\Framework\View\Element\Text');
         $block1->setText('Block text');
         $block1->setNameInLayout('block');
         $html = $this->_block->getBlockHtml('block');
@@ -344,7 +331,7 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
 
         // With layout
         $expected = 'Block2';
-        $block2 = $this->_createBlockWithLayout('block2', 'block2', \Magento\Framework\View\Element\Text::class);
+        $block2 = $this->_createBlockWithLayout('block2', 'block2', 'Magento\Framework\View\Element\Text');
         $block3 = $this->_createBlockWithLayout('block3', 'block3');
         $block2->setText($expected);
         $html = $block3->getBlockHtml('block2');
@@ -488,10 +475,7 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
     public function testGetViewFileUrl()
     {
         $actualResult = $this->_block->getViewFileUrl('css/styles.css');
-        $this->assertStringMatchesFormat(
-            'http://localhost/pub/static/%s/frontend/%s/en_US/css/styles.css',
-            $actualResult
-        );
+        $this->assertStringMatchesFormat('http://localhost/pub/static/frontend/%s/en_US/css/styles.css', $actualResult);
     }
 
     public function testGetModuleName()
@@ -549,9 +533,9 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
     {
         $name = uniqid('block.');
         $block = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-            \Magento\Framework\View\LayoutInterface::class
+            'Magento\Framework\View\LayoutInterface'
         )->createBlock(
-            \Magento\Framework\View\Element\Text::class
+            'Magento\Framework\View\Element\Text'
         );
         $block->setNameInLayout($name);
         $this->assertEquals([$name], $block->getCacheKeyInfo());
@@ -560,10 +544,10 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
     public function testGetCacheKey()
     {
         $name = uniqid('block.');
-        $block = Bootstrap::getObjectManager()->get(
-            \Magento\Framework\View\LayoutInterface::class
+        $block = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
+            'Magento\Framework\View\LayoutInterface'
         )->createBlock(
-            \Magento\Framework\View\Element\Text::class
+            'Magento\Framework\View\Element\Text'
         );
         $block->setNameInLayout($name);
         $key = $block->getCacheKey();
@@ -572,36 +556,7 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
         $this->assertNotEquals($name, $key);
 
         $block->setCacheKey('key');
-        $this->assertEquals(AbstractBlock::CACHE_KEY_PREFIX . 'key', $block->getCacheKey());
-    }
-
-    /**
-     * Check that SIDs inside blocks are not being replaced.
-     *
-     * @return void
-     * @magentoCache block_html enabled
-     */
-    public function testNoSid(): void
-    {
-        $blockId = 'block-with-sid' .Random::getRandomNumber(1, 9999);
-        $block = $this->_createBlockWithLayout(
-            $blockId,
-            $blockId,
-            \Magento\Framework\View\Element\Text::class
-        );
-        $outerId = 'block-outer' .Random::getRandomNumber(1, 9999);
-        $outer = $this->_createBlockWithLayout($outerId, $outerId);
-        $block->setText(
-            $text = 'Some text with ' .SidResolverInterface::SESSION_ID_QUERY_PARAM
-                .'=' .$this->session->getSessionId()
-        );
-        $block->setData('cache_lifetime', 3600);
-        //Caching the block's content
-        $outer->getBlockHtml($blockId);
-        //New ID generated, must not be replace in block's content.
-        $this->session->regenerateId();
-        $html = $outer->getBlockHtml($blockId);
-        $this->assertEquals($text, $html);
+        $this->assertEquals('key', $block->getCacheKey());
     }
 
     /**
@@ -615,14 +570,14 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
     protected function _createSampleBlocks(
         $qty,
         $withLayout = true,
-        $className = \Magento\Framework\View\Element\Template::class
+        $className = 'Magento\Framework\View\Element\Template'
     ) {
         $blocks = [];
         $names = [];
         $layout = false;
         if ($withLayout) {
             $layout = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-                \Magento\Framework\View\LayoutInterface::class
+                'Magento\Framework\View\LayoutInterface'
             );
         }
         for ($i = 0; $i < $qty; $i++) {
@@ -650,7 +605,7 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
     protected function _createBlockWithLayout(
         $name = 'block',
         $alias = null,
-        $type = AbstractBlock::class
+        $type = 'Magento\Framework\View\Element\AbstractBlock'
     ) {
         $typePart = explode('\\', $type);
         $mockClass = array_pop($typePart) . 'Mock';
@@ -658,8 +613,8 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
             self::$_mocks[$mockClass] = $this->getMockForAbstractClass(
                 $type,
                 [
-                    Bootstrap::getObjectManager()->get(
-                        \Magento\Framework\View\Element\Context::class
+                    \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
+                        'Magento\Framework\View\Element\Context'
                     ),
                     ['module_name' => 'Magento_Theme']
                 ],
@@ -667,8 +622,8 @@ class AbstractBlockTest extends \PHPUnit\Framework\TestCase
             );
         }
         if ($this->_layout === null) {
-            $this->_layout = Bootstrap::getObjectManager()->get(
-                \Magento\Framework\View\LayoutInterface::class
+            $this->_layout = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
+                'Magento\Framework\View\LayoutInterface'
             );
         }
         $block = $this->_layout->addBlock($mockClass, $name, '', $alias);

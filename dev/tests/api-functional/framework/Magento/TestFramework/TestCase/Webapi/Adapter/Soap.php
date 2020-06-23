@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\TestFramework\TestCase\Webapi\Adapter;
@@ -21,7 +21,7 @@ class Soap implements \Magento\TestFramework\TestCase\Webapi\AdapterInterface
      *
      * @var \Zend\Soap\Client[]
      */
-    protected $_soapClients = ['custom' => [], 'default' => []];
+    protected $_soapClients = [];
 
     /**
      * @var \Magento\Webapi\Model\Soap\Config
@@ -40,13 +40,13 @@ class Soap implements \Magento\TestFramework\TestCase\Webapi\AdapterInterface
     {
         /** @var $objectManager \Magento\TestFramework\ObjectManager */
         $objectManager = Bootstrap::getObjectManager();
-        $this->_soapConfig = $objectManager->get(\Magento\Webapi\Model\Soap\Config::class);
-        $this->_converter = $objectManager->get(\Magento\Framework\Api\SimpleDataObjectConverter::class);
+        $this->_soapConfig = $objectManager->get('Magento\Webapi\Model\Soap\Config');
+        $this->_converter = $objectManager->get('Magento\Framework\Api\SimpleDataObjectConverter');
         ini_set('default_socket_timeout', 120);
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function call($serviceInfo, $arguments = [], $storeCode = null, $integration = null)
     {
@@ -63,7 +63,7 @@ class Soap implements \Magento\TestFramework\TestCase\Webapi\AdapterInterface
     }
 
     /**
-     * Get proper SOAP client instance that is initialized with WSDL corresponding to requested service interface.
+     * Get proper SOAP client instance that is initialized with with WSDL corresponding to requested service interface.
      *
      * @param string $serviceInfo PHP service interface name, should include version if present
      * @param string|null $storeCode
@@ -75,28 +75,12 @@ class Soap implements \Magento\TestFramework\TestCase\Webapi\AdapterInterface
             [$this->_getSoapServiceName($serviceInfo) . $this->_getSoapServiceVersion($serviceInfo)],
             $storeCode
         );
-        /** @var \Zend\Soap\Client $soapClient */
-        $soapClient = null;
-        if (isset($serviceInfo['soap']['token'])) {
-            $token = $serviceInfo['soap']['token'];
-            if (array_key_exists($token, $this->_soapClients['custom'])
-                && array_key_exists($wsdlUrl, $this->_soapClients['custom'][$token])
-            ) {
-                $soapClient = $this->_soapClients['custom'][$token][$wsdlUrl];
-            } else {
-                if (!array_key_exists($token, $this->_soapClients['custom'])) {
-                    $this->_soapClients['custom'][$token] = [];
-                }
-                $soapClient = $this->_soapClients['custom'][$token][$wsdlUrl]
-                    = $this->instantiateSoapClient($wsdlUrl, $token);
-            }
-        } else {
-            if (!isset($this->_soapClients[$wsdlUrl])) {
-                $this->_soapClients['default'][$wsdlUrl] = $this->instantiateSoapClient($wsdlUrl, null);
-            }
-            $soapClient = $this->_soapClients['default'][$wsdlUrl];
+        /** Check if there is SOAP client initialized with requested WSDL available */
+        if (!isset($this->_soapClients[$wsdlUrl])) {
+            $token = isset($serviceInfo['soap']['token']) ? $serviceInfo['soap']['token'] : null;
+            $this->_soapClients[$wsdlUrl] = $this->instantiateSoapClient($wsdlUrl, $token);
         }
-        return $soapClient;
+        return $this->_soapClients[$wsdlUrl];
     }
 
     /**
@@ -140,7 +124,7 @@ class Soap implements \Magento\TestFramework\TestCase\Webapi\AdapterInterface
         ksort($services);
         if ($storeCode == null) {
             $storeCode = Bootstrap::getObjectManager()
-                ->get(\Magento\Store\Model\StoreManagerInterface::class)
+                ->get('Magento\Store\Model\StoreManagerInterface')
                 ->getStore()
                 ->getCode();
         }

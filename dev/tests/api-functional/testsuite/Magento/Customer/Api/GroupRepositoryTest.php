@@ -1,27 +1,20 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Customer\Api;
 
-use Magento\Customer\Api\Data\GroupInterface;
 use Magento\Customer\Model\Data\Group as CustomerGroup;
 use Magento\Customer\Model\GroupRegistry;
 use Magento\Customer\Model\ResourceModel\GroupRepository;
-use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Api\SortOrder;
-use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\WebapiAbstract;
 
 /**
  * Class GroupRepositoryTest
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class GroupRepositoryTest extends WebapiAbstract
 {
@@ -50,9 +43,25 @@ class GroupRepositoryTest extends WebapiAbstract
     public function setUp()
     {
         $objectManager = Bootstrap::getObjectManager();
-        $this->groupRegistry = $objectManager->get(\Magento\Customer\Model\GroupRegistry::class);
-        $this->groupRepository = $objectManager->get(\Magento\Customer\Model\ResourceModel\GroupRepository::class);
-        $this->customerGroupFactory = $objectManager->create(\Magento\Customer\Api\Data\GroupInterfaceFactory::class);
+        $this->groupRegistry = $objectManager->get('Magento\Customer\Model\GroupRegistry');
+        $this->groupRepository = $objectManager->get('Magento\Customer\Model\ResourceModel\GroupRepository');
+        $this->customerGroupFactory = $objectManager->create('Magento\Customer\Api\Data\GroupInterfaceFactory');
+    }
+
+    /**
+     * Execute per test cleanup.
+     */
+    public function tearDown()
+    {
+        parent::tearDown();
+    }
+
+    /**
+     * Cleaning up the extra groups that might have been created as part of the testing.
+     */
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
     }
 
     /**
@@ -263,7 +272,7 @@ class GroupRepositoryTest extends WebapiAbstract
         } catch (\Exception $e) {
             // @codingStandardsIgnoreStart
             $this->assertContains(
-                '\"%fieldName\" is required. Enter and try again.","parameters":{"fieldName":"code"}',
+                '{"message":"%fieldName is a required field.","parameters":{"fieldName":"code"}',
                 $e->getMessage(),
                 "Exception does not contain expected message."
             );
@@ -590,7 +599,7 @@ class GroupRepositoryTest extends WebapiAbstract
             $this->fail("Expected exception");
         } catch (\SoapFault $e) {
             $this->assertContains(
-                '"%fieldName" is required. Enter and try again.',
+                '%fieldName is a required field.',
                 $e->getMessage(),
                 "SoapFault does not contain expected message."
             );
@@ -768,7 +777,7 @@ class GroupRepositoryTest extends WebapiAbstract
         ];
 
         $requestData = [CustomerGroup::ID => $groupId];
-        $expectedMessage = 'No such entity with %fieldName = %fieldValue';
+        $expectedMessage = NoSuchEntityException::MESSAGE_SINGLE_FIELD;
         $expectedParameters = ['fieldName' => CustomerGroup::ID, 'fieldValue' => $groupId];
 
         try {
@@ -858,7 +867,7 @@ class GroupRepositoryTest extends WebapiAbstract
         return [
             ['tax_class_id', 3, []],
             ['tax_class_id', 0, null],
-            ['code', hash("sha256", random_int(0, 10000000000) . time()), null],
+            ['code', md5(mt_rand(0, 10000000000) . time()), null],
             [
                 'id',
                 0,
@@ -913,10 +922,10 @@ class GroupRepositoryTest extends WebapiAbstract
      */
     public function testSearchGroups($filterField, $filterValue, $expectedResult)
     {
-        $filterBuilder = Bootstrap::getObjectManager()->create(\Magento\Framework\Api\FilterBuilder::class);
-        /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
+        $filterBuilder = Bootstrap::getObjectManager()->create('Magento\Framework\Api\FilterBuilder');
+        /** @var \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder */
         $searchCriteriaBuilder =  Bootstrap::getObjectManager()
-            ->create(\Magento\Framework\Api\SearchCriteriaBuilder::class);
+            ->create('Magento\Framework\Api\SearchCriteriaBuilder');
         $filter = $filterBuilder
                     ->setField($filterField)
                     ->setValue($filterValue)
@@ -949,59 +958,6 @@ class GroupRepositoryTest extends WebapiAbstract
         }
     }
 
-    public function testSearchGroupsWithMultipleFilterGroupsAndSorting()
-    {
-        /** @var FilterBuilder $filterBuilder */
-        $filterBuilder = Bootstrap::getObjectManager()->create(FilterBuilder::class);
-
-        $filter1 = $filterBuilder->setField(GroupInterface::CODE)
-            ->setValue('General')
-            ->create();
-        $filter2 = $filterBuilder->setField(GroupInterface::CODE)
-            ->setValue('Retailer')
-            ->create();
-        $filter3 = $filterBuilder->setField(GroupInterface::CODE)
-            ->setValue('Wholesale')
-            ->create();
-        $filter4 = $filterBuilder->setField(GroupInterface::ID)
-            ->setValue(1)
-            ->setConditionType('gt')
-            ->create();
-
-        /**@var SortOrderBuilder $sortOrderBuilder */
-        $sortOrderBuilder = Bootstrap::getObjectManager()->create(SortOrderBuilder::class);
-
-        /** @var SortOrder $sortOrder */
-        $sortOrder = $sortOrderBuilder->setField(GroupInterface::CODE)->setDirection(SortOrder::SORT_ASC)->create();
-
-        /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
-        $searchCriteriaBuilder =  Bootstrap::getObjectManager()->create(SearchCriteriaBuilder::class);
-
-        $searchCriteriaBuilder->addFilters([$filter1, $filter2, $filter3]);
-        $searchCriteriaBuilder->addFilters([$filter4]);
-        $searchCriteriaBuilder->setSortOrders([$sortOrder]);
-
-        $searchData = $searchCriteriaBuilder->create()->__toArray();
-        $requestData = ['searchCriteria' => $searchData];
-        $serviceInfo = [
-            'rest' => [
-                'resourcePath' => self::RESOURCE_PATH . "/search" . '?' . http_build_query($requestData),
-                'httpMethod' => \Magento\Framework\Webapi\Rest\Request::HTTP_METHOD_GET,
-            ],
-            'soap' => [
-                'service' => self::SERVICE_NAME,
-                'serviceVersion' => self::SERVICE_VERSION,
-                'operation' => 'customerGroupRepositoryV1GetList',
-            ],
-        ];
-
-        $searchResult = $this->_webApiCall($serviceInfo, $requestData);
-
-        $this->assertEquals(2, $searchResult['total_count']);
-        $this->assertEquals(3, $searchResult['items'][0][GroupInterface::ID]);
-        $this->assertEquals(2, $searchResult['items'][1][GroupInterface::ID]);
-    }
-
     /**
      * Test search customer group using GET
      *
@@ -1014,10 +970,10 @@ class GroupRepositoryTest extends WebapiAbstract
     public function testSearchGroupsWithGET($filterField, $filterValue, $expectedResult)
     {
         $this->_markTestAsRestOnly('SOAP is covered in ');
-        $filterBuilder = Bootstrap::getObjectManager()->create(\Magento\Framework\Api\FilterBuilder::class);
-        /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
+        $filterBuilder = Bootstrap::getObjectManager()->create('Magento\Framework\Api\FilterBuilder');
+        /** @var \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder */
         $searchCriteriaBuilder =  Bootstrap::getObjectManager()
-            ->create(\Magento\Framework\Api\SearchCriteriaBuilder::class);
+            ->create('Magento\Framework\Api\SearchCriteriaBuilder');
         $filter = $filterBuilder
             ->setField($filterField)
             ->setValue($filterValue)

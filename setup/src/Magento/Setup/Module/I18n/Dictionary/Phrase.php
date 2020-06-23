@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Setup\Module\I18n\Dictionary;
@@ -93,7 +93,7 @@ class Phrase
     }
 
     /**
-     * Get phrase
+     * Get quote type
      *
      * @return string
      */
@@ -116,7 +116,7 @@ class Phrase
     }
 
     /**
-     * Get quote type
+     * Get phrase
      *
      * @return string
      */
@@ -259,23 +259,19 @@ class Phrase
     }
 
     /**
-     * Compile PHP string (escaping unescaped quotes and processing concatenation)
+     * Compile PHP string based on quotes type it enclosed with
      *
      * @param string $string
      * @return string
+     *
+     * @SuppressWarnings(PHPMD.EvalExpression)
      */
     private function getCompiledString($string)
     {
         $encloseQuote = $this->getQuote() == Phrase::QUOTE_DOUBLE ? Phrase::QUOTE_DOUBLE : Phrase::QUOTE_SINGLE;
-        /* Find all occurrences of ' and ", with no \ before it for concatenation */
-        preg_match_all('/[^\\\\]' . $encloseQuote . '|' . $encloseQuote . '[^\\\\]/', $string, $matches);
-        if (count($matches[0])) {
-            $string = preg_replace('/([^\\\\])' . $encloseQuote . ' ?\. ?' . $encloseQuote . '/', '$1', $string);
-        }
-        /* Remove all occurrences of escaped quotes because it is not desirable in csv file.
-           Translation for such phrases will use translation for phrase without escaped quote. */
-        $string = str_replace('\"', '"', $string);
-        $string = str_replace("\\'", "'", $string);
-        return $string;
+
+        $evalString = 'return ' . $encloseQuote . $string . $encloseQuote . ';';
+        $result = @eval($evalString);
+        return is_string($result) ? $result :  $string;
     }
 }

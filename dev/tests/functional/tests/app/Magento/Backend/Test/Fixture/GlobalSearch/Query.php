@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -32,7 +32,7 @@ class Query extends DataSource
     {
         $this->params = $params;
         $explodedData = explode('::', $data);
-        switch (count($explodedData)) {
+        switch (sizeof($explodedData)) {
             case 1:
                 $this->data = $explodedData[0];
                 break;

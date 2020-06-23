@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -63,18 +63,18 @@ class AssertAttributeSetOnProductForm extends AbstractConstraint
 
         $formData = $productEdit->getProductForm()->getData($productSimple);
         $formAttributeSet = $formData['attribute_set_id'];
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $attributeSet->getAttributeSetName(),
             $formAttributeSet,
-            'The attribute set wasn\'t found on product form.'
+            'Attribute Set not found on Product form.'
             . "\nExpected: " . $attributeSet->getAttributeSetName()
             . "\nActual: " . $formAttributeSet
         );
 
         if ($attributeSetOriginal === null) {
-            $productEdit->getProductForm()->openSection('product-details');
+            $productEdit->getProductForm()->openTab('product-details');
 
-            \PHPUnit\Framework\Assert::assertTrue(
+            \PHPUnit_Framework_Assert::assertTrue(
                 $productEdit->getProductForm()->checkAttributeLabel($productAttribute),
                 "Product Attribute is absent on Product form."
             );

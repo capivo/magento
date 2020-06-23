@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -25,7 +25,7 @@ class AssertCatalogPriceRuleSuccessSaveMessage extends AbstractConstraint
     public function processAssert(CatalogRuleIndex $pageCatalogRuleIndex)
     {
         $actualMessages = $pageCatalogRuleIndex->getMessagesBlock()->getSuccessMessages();
-        \PHPUnit\Framework\Assert::assertContains(
+        \PHPUnit_Framework_Assert::assertContains(
             self::SUCCESS_MESSAGE,
             $actualMessages,
             'Wrong success message is displayed.'

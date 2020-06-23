@@ -1,8 +1,10 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
 
 namespace Magento\Sales\Service\V1;
 
@@ -28,14 +30,13 @@ class ShipmentCreateTest extends WebapiAbstract
     {
         $this->objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
     }
-
     /**
      * @magentoApiDataFixture Magento/Sales/_files/order.php
      */
     public function testInvoke()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->objectManager->create(\Magento\Sales\Model\Order::class)->loadByIncrementId('100000001');
+        $order = $this->objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId('100000001');
         $orderItem = current($order->getAllItems());
         $items = [
             [
@@ -43,13 +44,13 @@ class ShipmentCreateTest extends WebapiAbstract
                 'qty' => $orderItem->getQtyOrdered(),
                 'additional_data' => null,
                 'description' => null,
-                'entity_id' => 1,
+                'entity_id' => null,
                 'name' => null,
                 'parent_id' => null,
                 'price' => null,
                 'product_id' => null,
                 'row_total' => null,
-                'sku' => 'simple',
+                'sku' => null,
                 'weight' => null,
             ],
         ];
@@ -78,30 +79,11 @@ class ShipmentCreateTest extends WebapiAbstract
             'increment_id' => null,
             'created_at' => null,
             'updated_at' => null,
+//            'packages' => null,
             'shipping_label' => null,
-            'tracks' => [
-                [
-                    'carrier_code' => 'UPS',
-                    'order_id' => $order->getId(),
-                    'title' => 'ground',
-                    'description' => null,
-                    'track_number' => '12345678',
-                    'parent_id' => null,
-                    'created_at' => null,
-                    'updated_at' => null,
-                    'qty' => null,
-                    'weight' => null
-                ]
-            ],
+            'tracks' => [],
             'items' => $items,
-            'comments' => [
-                [
-                    'comment' => 'Shipment-related comment.',
-                    'is_customer_notified' => null,
-                    'is_visible_on_front' => null,
-                    'parent_id' => null
-                ]
-            ],
+            'comments' => [],
         ];
         $result = $this->_webApiCall($serviceInfo, ['entity' => $data]);
         $this->assertNotEmpty($result);

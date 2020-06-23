@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -22,7 +22,7 @@ class AssertBundlePriceType extends AbstractConstraint
      *
      * @var string
      */
-    protected $productPriceType = 'Yes';
+    protected $productPriceType = 'Dynamic';
 
     /**
      * Assert that displayed price for bundle items on shopping cart page equals to passed from fixture.
@@ -79,6 +79,7 @@ class AssertBundlePriceType extends AbstractConstraint
         $cartItem = $checkoutCartView->getCartBlock()->getCartItem($product);
         $specialPrice = 0;
 
+
         $optionPrice = [];
         $fillData = $product->getCheckoutData();
         foreach ($fillData['options']['bundle_options'] as $key => $data) {
@@ -90,7 +91,7 @@ class AssertBundlePriceType extends AbstractConstraint
                 }
             }
 
-            $optionPrice[$key]['price'] = $this->productPriceType == 'No'
+            $optionPrice[$key]['price'] = $this->productPriceType == 'Fixed'
                 ? number_format(
                     $bundleData['bundle_selections']['bundle_options'][$key]['assigned_products'][$data['value']['key']]
                     ['data']['selection_price_value'],
@@ -101,7 +102,7 @@ class AssertBundlePriceType extends AbstractConstraint
 
         foreach ($optionPrice as $index => $item) {
             $item['price'] -= $item['price'] * $specialPrice;
-            \PHPUnit\Framework\Assert::assertEquals(
+            \PHPUnit_Framework_Assert::assertEquals(
                 number_format($item['price'], 2),
                 $cartItem->getPriceBundleOptions($index + 1),
                 'Bundle item ' . ($index + 1) . ' options on frontend don\'t equal to fixture.'
@@ -110,7 +111,7 @@ class AssertBundlePriceType extends AbstractConstraint
         $sumOptionsPrice = $product->getDataFieldConfig('price')['source']->getPriceData()['cart_price'];
 
         $subTotal = number_format($cartItem->getPrice(), 2);
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $sumOptionsPrice,
             $subTotal,
             'Bundle unit price on frontend doesn\'t equal to fixture.'

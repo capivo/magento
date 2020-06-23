@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -40,7 +40,7 @@ class AssertOrderButtonsUnavailable extends AbstractConstraint
                 $matches[] = $button;
             }
         }
-        \PHPUnit\Framework\Assert::assertEmpty(
+        \PHPUnit_Framework_Assert::assertEmpty(
             $matches,
             'Buttons are present on order page.'
             . "\nLog:\n" . implode(";\n", $matches)

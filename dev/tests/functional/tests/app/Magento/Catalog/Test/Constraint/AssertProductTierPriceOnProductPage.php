@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -83,16 +83,16 @@ class AssertProductTierPriceOnProductPage extends AbstractConstraint implements 
             if (!$noError) {
                 break;
             }
-            $tierPriceValue = isset($tierPrice['price']) ? $tierPrice['price'] : $tierPrice['percentage_value'];
-            if ($match[1] !== $tierPrice['price_qty']
-                || $match[2] !== number_format($tierPriceValue, $this->priceFormat)
+            if (count($match) < 2
+                && $match[1] != $tierPrice['price_qty']
+                || $match[2] !== number_format($tierPrice['price'], $this->priceFormat)
             ) {
                 $noError = false;
                 break;
             }
         }
 
-        \PHPUnit\Framework\Assert::assertTrue($noError, $this->errorMessage);
+        \PHPUnit_Framework_Assert::assertTrue($noError, $this->errorMessage);
     }
 
     /**

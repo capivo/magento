@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -26,17 +26,13 @@ class Curl extends Conditions implements CatalogRuleInterface
      */
     protected $mapTypeParams = [
         'Conditions combination' => [
-            'type' => \Magento\CatalogRule\Model\Rule\Condition\Combine::class,
+            'type' => 'Magento\CatalogRule\Model\Rule\Condition\Combine',
             'aggregator' => 'all',
             'value' => 1,
         ],
         'Category' => [
-            'type' => \Magento\CatalogRule\Model\Rule\Condition\Product::class,
+            'type' => 'Magento\CatalogRule\Model\Rule\Condition\Product',
             'attribute' => 'category_ids',
-        ],
-        'Attribute' => [
-            'type' => \Magento\CatalogRule\Model\Rule\Condition\Product::class,
-            'attribute' => 'attribute_id',
         ],
     ];
 
@@ -100,7 +96,7 @@ class Curl extends Conditions implements CatalogRuleInterface
         $response = $curl->read();
         $curl->close();
 
-        if (strpos($response, 'data-ui-id="messages-message-success"') === false) {
+        if (!strpos($response, 'data-ui-id="messages-message-success"')) {
             throw new \Exception(
                 "Catalog Price Rule entity creating by curl handler was not successful! Response: $response"
             );

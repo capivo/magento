@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -9,6 +9,7 @@ namespace Magento\Mtf\Client\Element;
 use Magento\Mtf\Client\Locator;
 
 /**
+ * Class LiselectstoreElement
  * Typified element class for lists selectors
  */
 class LiselectstoreElement extends SimpleElement
@@ -73,9 +74,8 @@ class LiselectstoreElement extends SimpleElement
         }
         $optionSelector = './/' . implode($this->optionMaskFollowing, $optionSelector) . '/a';
 
-        $option = $this->context->find($optionSelector, Locator::SELECTOR_XPATH);
+        $option = $this->driver->find($optionSelector, Locator::SELECTOR_XPATH);
         if (!$option->isVisible()) {
-            // phpcs:ignore Magento2.Exceptions.DirectThrow
             throw new \Exception('[' . implode('/', $value) . '] option is not visible in store switcher.');
         }
         $option->click();
@@ -133,7 +133,7 @@ class LiselectstoreElement extends SimpleElement
      */
     protected function isSubstring($haystack, $pattern)
     {
-        return preg_match("/$pattern/", $haystack) != 0;
+        return preg_match("/$pattern/", $haystack) != 0 ? true : false;
     }
 
     /**
@@ -157,8 +157,8 @@ class LiselectstoreElement extends SimpleElement
     /**
      * Get selected store value
      *
-     * @return string
      * @throws \Exception
+     * @return string
      */
     public function getValue()
     {

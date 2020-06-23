@@ -1,16 +1,14 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Backend\Block\Dashboard;
 
 /**
  * @magentoAppArea adminhtml
  */
-class GraphTest extends \PHPUnit\Framework\TestCase
+class GraphTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \Magento\Backend\Block\Dashboard\Graph
@@ -22,13 +20,13 @@ class GraphTest extends \PHPUnit\Framework\TestCase
         parent::setUp();
         $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
         /** @var \Magento\Framework\View\LayoutInterface $layout */
-        $layout = $objectManager->get(\Magento\Framework\View\LayoutInterface::class);
-        $this->_block = $layout->createBlock(\Magento\Backend\Block\Dashboard\Graph::class);
-        $this->_block->setDataHelper($objectManager->get(\Magento\Backend\Helper\Dashboard\Order::class));
+        $layout = $objectManager->get('Magento\Framework\View\LayoutInterface');
+        $this->_block = $layout->createBlock('Magento\Backend\Block\Dashboard\Graph');
+        $this->_block->setDataHelper($objectManager->get('Magento\Backend\Helper\Dashboard\Order'));
     }
 
     public function testGetChartUrl()
     {
-        $this->assertStringStartsWith('https://image-charts.com/chart', $this->_block->getChartUrl());
+        $this->assertStringStartsWith('http://chart.apis.google.com/chart', $this->_block->getChartUrl());
     }
 }

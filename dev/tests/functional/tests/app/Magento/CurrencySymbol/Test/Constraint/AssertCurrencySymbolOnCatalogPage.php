@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -41,7 +41,7 @@ class AssertCurrencySymbolOnCatalogPage extends AbstractConstraint
         preg_match('`(.*?)\d`', $price, $matches);
 
         $symbolOnPage = isset($matches[1]) ? $matches[1] : null;
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $currencySymbol->getCustomCurrencySymbol(),
             $symbolOnPage,
             'Wrong Currency Symbol is displayed on Category page.'

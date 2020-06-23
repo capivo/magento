@@ -1,11 +1,11 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Test\Helper;
 
-class MemoryTest extends \PHPUnit\Framework\TestCase
+class MemoryTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject
@@ -14,14 +14,23 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
 
     protected function setUp()
     {
-        $this->_shell = $this->createPartialMock(\Magento\Framework\Shell::class, ['execute']);
+        $this->_shell = $this->getMock('Magento\Framework\Shell', ['execute'], [], '', false);
     }
 
     public function testGetRealMemoryUsageUnix()
     {
         $object = new \Magento\TestFramework\Helper\Memory($this->_shell);
         $this->_shell->expects(
-            $this->once()
+            $this->at(0)
+        )->method(
+            'execute'
+        )->with(
+            $this->stringStartsWith('tasklist.exe ')
+        )->will(
+            $this->throwException(new \Magento\Framework\Exception\LocalizedException(__('command not found')))
+        );
+        $this->_shell->expects(
+            $this->at(1)
         )->method(
             'execute'
         )->with(
@@ -35,16 +44,7 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
     public function testGetRealMemoryUsageWin()
     {
         $this->_shell->expects(
-            $this->at(0)
-        )->method(
-            'execute'
-        )->with(
-            $this->stringStartsWith('ps ')
-        )->will(
-            $this->throwException(new \Magento\Framework\Exception\LocalizedException(__('command not found')))
-        );
-        $this->_shell->expects(
-            $this->at(1)
+            $this->once()
         )->method(
             'execute'
         )->with(

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -138,7 +138,7 @@ class Curl extends AbstractCurl implements CategoryInterface
         $response = $this->backendTransport->read();
         $this->backendTransport->close();
 
-        if (strpos($response, 'data-ui-id="messages-message-success"') === false) {
+        if (!strpos($response, 'data-ui-id="messages-message-success"')) {
             $this->_eventManager->dispatchEvent(['curl_failed'], [$response]);
             throw new \Exception('Category creation by curl handler was not successful!');
         }
@@ -196,11 +196,10 @@ class Curl extends AbstractCurl implements CategoryInterface
 
         $this->prepareAvailableSortBy();
 
-        $useConfig = array_diff($this->dataUseConfig, array_keys($this->fields['general']));
-        if (!empty($useConfig)) {
-            $this->fields['use_config'] = $useConfig;
+        $diff = array_diff($this->dataUseConfig, array_keys($this->fields['general']));
+        if (!empty($diff)) {
+            $this->fields['use_config'] = $diff;
         }
-        unset($this->fields['general']['use_config']);
     }
 
     /**
@@ -251,13 +250,8 @@ class Curl extends AbstractCurl implements CategoryInterface
         $curl->write($url, [], CurlInterface::GET);
         $response = $curl->read();
         $curl->close();
-        $id = null;
-        //Finding block option in 'Add block' options UI data.
-        preg_match('~\{[^\{\}]*?"label":"' . preg_quote($landingName) . '"[^\{\}]*?\}~', $response, $matches);
-        if (!empty($matches)) {
-            $blockOption = json_decode($matches[0], true);
-            $id = (int)$blockOption['value'];
-        }
+        preg_match('~<option.*value="(\d+)".*>' . preg_quote($landingName) . '</option>~', $response, $matches);
+        $id = isset($matches[1]) ? (int)$matches[1] : null;
 
         return $id;
     }

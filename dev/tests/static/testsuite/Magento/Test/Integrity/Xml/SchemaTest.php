@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -8,15 +8,15 @@ namespace Magento\Test\Integrity\Xml;
 
 use Magento\Framework\Component\ComponentRegistrar;
 
-class SchemaTest extends \PHPUnit\Framework\TestCase
+class SchemaTest extends \PHPUnit_Framework_TestCase
 {
     public function testXmlFiles()
     {
         $invoker = new \Magento\Framework\App\Utility\AggregateInvoker($this);
         $invoker(
-            /**
-             * @param string $filename
-             */
+        /**
+         * @param string $filename
+         */
             function ($filename) {
                 $dom = new \DOMDocument();
                 $xmlFile = file_get_contents($filename);
@@ -35,11 +35,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                     . 'xsi:noNamespaceSchemaLocation="urn:magento:framework:Relative_Path/something.xsd"'
                 );
 
-                try {
-                    $errors = \Magento\Framework\Config\Dom::validateDomDocument($dom, $schemaLocations[1]);
-                } catch (\Exception $exception) {
-                    $errors = [$exception->__toString()];
-                }
+                $errors = \Magento\Framework\Config\Dom::validateDomDocument($dom, $schemaLocations[1]);
                 $this->assertEmpty(
                     $errors,
                     "Error validating $filename against {$schemaLocations[1]}\n" . print_r($errors, true)
@@ -68,7 +64,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
         $componentRegistrar = new ComponentRegistrar();
         $codeXml = [];
         foreach ($componentRegistrar->getPaths(ComponentRegistrar::MODULE) as $modulePath) {
-            $codeXml = array_merge($codeXml, $this->_getFiles($modulePath, '*.xml', '/.\/Test\/./'));
+            $codeXml = array_merge($codeXml, $this->_getFiles($modulePath, '*.xml', '/.\/Test\/Unit\/./'));
         }
         $this->_filterSpecialCases($codeXml);
         $designXml = [];
@@ -105,11 +101,9 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
         $list = [
             '#etc/countries.xml$#',
             '#conf/schema.xml$#',
+            '#conf/solrconfig.xml$#',
             '#layout/swagger_index_index.xml$#',
-            '#Doc/etc/doc/vars.xml$#',
-            '#phpunit.xml$#',
-            '#etc/db_schema.xml$#',
-            '#Test/Mftf#',
+            '#Doc/etc/doc/vars.xml$#'
         ];
         foreach ($list as $pattern) {
             foreach ($files as $key => $value) {

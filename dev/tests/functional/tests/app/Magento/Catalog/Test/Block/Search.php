@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -10,6 +10,7 @@ use Magento\Mtf\Block\Block;
 use Magento\Mtf\Client\Locator;
 
 /**
+ * Class Search
  * Block for "Search" section
  */
 class Search extends Block
@@ -50,33 +51,16 @@ class Search extends Block
     protected $placeholder = '//input[@id="search" and contains(@placeholder, "%s")]';
 
     /**
-     * Locator value for list items.
-     *
-     * @var string
-     */
-    private $searchListItems = './/div[@id="search_autocomplete"]//li';
-
-    /**
-     * Locator value for body with aria-busy attribute.
-     *
-     * @var string
-     */
-    private $selectorAriaBusy = './/body[@aria-busy="false"]';
-
-    /**
      * Perform search by a keyword.
      *
      * @param string $keyword
-     * @param string|null $length
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.ConstructorWithNameAsEnclosingClass)
      */
-    public function search($keyword, $length = null)
+    public function search($keyword)
     {
-        if ($length) {
-            $keyword = substr($keyword, 0, $length);
-        }
         $this->fillSearch($keyword);
-        $this->waitForElementEnabled($this->searchButton);
         $this->_rootElement->find($this->searchButton)->click();
     }
 
@@ -89,27 +73,6 @@ class Search extends Block
     public function fillSearch($text)
     {
         $this->_rootElement->find($this->searchInput)->setValue($text);
-        $this->waitUntilSearchPrepared();
-    }
-
-    /**
-     * Wait until "Suggest Search" block will be prepared.
-     *
-     * @return bool
-     */
-    public function waitUntilSearchPrepared()
-    {
-        $this->browser->waitUntil(
-            function () {
-                $count = count($this->_rootElement->getElements($this->searchListItems, Locator::SELECTOR_XPATH));
-                usleep(200);
-                $newCount = count($this->_rootElement->getElements($this->searchListItems, Locator::SELECTOR_XPATH));
-                return $this->browser->find($this->selectorAriaBusy, Locator::SELECTOR_XPATH)->isVisible()
-                    && ($newCount == $count)
-                    ? true
-                    : null;
-            }
-        );
     }
 
     /**
@@ -142,38 +105,6 @@ class Search extends Block
         return (bool)$this->_rootElement->waitUntil(
             function () use ($rootElement, $searchAutocomplete) {
                 return $rootElement->find($searchAutocomplete, Locator::SELECTOR_XPATH)->isVisible() ? true : null;
-            }
-        );
-    }
-
-    /**
-     * Click on suggested text.
-     *
-     * @param string $text
-     * @return void
-     */
-    public function clickSuggestedText($text)
-    {
-        $searchAutocomplete = sprintf($this->searchAutocomplete, $text);
-        $this->_rootElement->find($searchAutocomplete, Locator::SELECTOR_XPATH)->click();
-    }
-
-    /**
-     * Wait for element is enabled.
-     *
-     * @param string $selector
-     * @param string $strategy
-     * @return bool|null
-     */
-    public function waitForElementEnabled($selector, $strategy = Locator::SELECTOR_CSS)
-    {
-        $browser = $this->browser;
-
-        return $browser->waitUntil(
-            function () use ($browser, $selector, $strategy) {
-                $element = $browser->find($selector, $strategy);
-
-                return !$element->isDisabled() ? true : null;
             }
         );
     }

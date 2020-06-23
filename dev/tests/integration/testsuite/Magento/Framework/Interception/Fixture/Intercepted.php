@@ -1,15 +1,14 @@
 <?php
 /**
  *
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
+// @codingStandardsIgnoreFile
+
 namespace Magento\Framework\Interception\Fixture;
 
-/**
- * phpcs:ignoreFile
- */
 class Intercepted extends InterceptedParent implements InterceptedInterface
 {
     protected $_key;

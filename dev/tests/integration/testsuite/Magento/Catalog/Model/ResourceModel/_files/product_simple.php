@@ -1,15 +1,16 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 use Magento\Customer\Model\Group;
 
 /** @var $product \Magento\Catalog\Model\Product */
 $product = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
-    ->create(\Magento\Catalog\Model\Product::class);
+    ->create('Magento\Catalog\Model\Product');
 $product->isObjectNew(true);
 $product->setTypeId(\Magento\Catalog\Model\Product\Type::TYPE_SIMPLE)
+    ->setId(2)
     ->setAttributeSetId(4)
     ->setWebsiteIds([1])
     ->setName('Simple Products')
@@ -32,12 +33,6 @@ $product->setTypeId(\Magento\Catalog\Model\Product\Type::TYPE_SIMPLE)
                 'price_qty'  => 21,
                 'price'      => 81,
             ],
-            [
-                'website_id' => 0,
-                'cust_group' => Group::CUST_GROUP_ALL,
-                'price_qty'  => 30,
-                'percentage_value' => 50,
-            ],
         ]
     )
     ->setDescription('Description with <b>html tag</b>')
@@ -47,5 +42,5 @@ $product->setTypeId(\Magento\Catalog\Model\Product\Type::TYPE_SIMPLE)
     ->setVisibility(\Magento\Catalog\Model\Product\Visibility::VISIBILITY_BOTH)
     ->setStatus(\Magento\Catalog\Model\Product\Attribute\Source\Status::STATUS_ENABLED)
     ->setUrlKey('url-key')
-    ->setUrlPath('url-key')
+    ->setUrlPath('url-key.html')
     ->save();

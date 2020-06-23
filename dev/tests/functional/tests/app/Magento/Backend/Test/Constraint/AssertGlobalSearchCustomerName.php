@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -8,7 +8,6 @@ namespace Magento\Backend\Test\Constraint;
 
 use Magento\Backend\Test\Fixture\GlobalSearch;
 use Magento\Backend\Test\Page\Adminhtml\Dashboard;
-use Magento\Customer\Test\Page\Adminhtml\CustomerIndex;
 use Magento\Mtf\Constraint\AbstractConstraint;
 
 /**
@@ -22,29 +21,16 @@ class AssertGlobalSearchCustomerName extends AbstractConstraint
      *
      * @param Dashboard $dashboard
      * @param GlobalSearch $search
-     * @param CustomerIndex $customerIndex
      * @return void
      */
-    public function processAssert(Dashboard $dashboard, GlobalSearch $search, CustomerIndex $customerIndex)
+    public function processAssert(Dashboard $dashboard, GlobalSearch $search)
     {
         $customer = $search->getDataFieldConfig('query')['source']->getEntity();
         $customerName = $customer->getFirstname() . " " . $customer->getLastname();
         $isVisibleInResult = $dashboard->getAdminPanelHeader()->isSearchResultVisible($customerName);
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $isVisibleInResult,
             'Customer name ' . $customerName . ' is absent in search results'
-        );
-
-        $dashboard->getAdminPanelHeader()->navigateToGrid("Customers");
-        $isCustomerGridVisible = $customerIndex->getCustomerGridBlock()->isVisible();
-        \PHPUnit\Framework\Assert::assertTrue(
-            $isCustomerGridVisible,
-            'Customer grid is not visible'
-        );
-        \PHPUnit\Framework\Assert::assertContains(
-            (string) $customer->getId(),
-            $customerIndex->getCustomerGridBlock()->getAllIds(),
-            'Customer grid does not have ' . $customerName . ' in search results'
         );
     }
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -28,13 +28,13 @@ class AssertCatalogSearchResult extends AbstractConstraint
      */
     public function processAssert(CatalogSearchQuery $catalogSearch, AdvancedResult $resultPage)
     {
-        $product = $catalogSearch->getDataFieldConfig('query_text')['source']->getFirstProduct();
-
-        do {
+        $product = $catalogSearch->getDataFieldConfig('query_text')['source']->getProduct();
+        $isProductVisible = $resultPage->getListProductBlock()->getProductItem($product)->isVisible();
+        while (!$isProductVisible && $resultPage->getBottomToolbar()->nextPage()) {
             $isProductVisible = $resultPage->getListProductBlock()->getProductItem($product)->isVisible();
-        } while (!$isProductVisible && $resultPage->getBottomToolbar()->nextPage());
+        }
 
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $isProductVisible,
             "A product with name '" . $product->getName() . "' was not found."
         );

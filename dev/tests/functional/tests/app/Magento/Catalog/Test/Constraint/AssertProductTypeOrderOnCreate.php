@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -25,7 +25,7 @@ class AssertProductTypeOrderOnCreate extends AbstractConstraint
     {
         $catalogProductIndex->open();
         ksort($menu);
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             implode("\n", $menu),
             $catalogProductIndex->getGridPageActionBlock()->getTypeList(),
             'Order and filling of types on product page not equals to incoming data.'

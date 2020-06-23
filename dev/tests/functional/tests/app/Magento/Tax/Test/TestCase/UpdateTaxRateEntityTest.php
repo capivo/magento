@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -26,14 +26,14 @@ use Magento\Mtf\TestCase\Injectable;
  * 6. Click 'Save Rate' button.
  * 7. Perform asserts.
  *
- * @group Tax
+ * @group Tax_(CS)
  * @ZephyrId MAGETWO-23299
  */
 class UpdateTaxRateEntityTest extends Injectable
 {
     /* tags */
     const MVP = 'yes';
-    const MFTF_MIGRATED = 'yes';
+    const DOMAIN = 'CS';
     /* end tags */
 
     /**

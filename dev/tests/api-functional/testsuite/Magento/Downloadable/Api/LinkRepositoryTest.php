@@ -1,20 +1,15 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\Downloadable\Api;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Downloadable\Model\Link;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\TestCase\WebapiAbstract;
 
-/**
- * API tests for Magento\Downloadable\Model\LinkRepository.
- */
 class LinkRepositoryTest extends WebapiAbstract
 {
     /**
@@ -86,12 +81,9 @@ class LinkRepositoryTest extends WebapiAbstract
     {
         $objectManager = Bootstrap::getObjectManager();
         if ($isScopeGlobal) {
-            $product = $objectManager->get(\Magento\Catalog\Model\ProductFactory::class)
-                ->create()
-                ->setStoreId(0)
-                ->load(1);
+            $product = $objectManager->get('Magento\Catalog\Model\ProductFactory')->create()->setStoreId(0)->load(1);
         } else {
-            $product = $objectManager->get(\Magento\Catalog\Model\ProductFactory::class)->create()->load(1);
+            $product = $objectManager->get('Magento\Catalog\Model\ProductFactory')->create()->load(1);
         }
 
         return $product;
@@ -106,16 +98,9 @@ class LinkRepositoryTest extends WebapiAbstract
      */
     protected function getTargetLink(Product $product, $linkId = null)
     {
-        $links = $product->getExtensionAttributes()->getDownloadableProductLinks();
+        $links = $product->getTypeInstance()->getLinks($product);
         if ($linkId !== null) {
-            if (!empty($links)) {
-                foreach ($links as $link) {
-                    if ($link->getId() == $linkId) {
-                        return $link;
-                    }
-                }
-            }
-            return null;
+            return isset($links[$linkId]) ? $links[$linkId] : null;
         }
 
         // return first link
@@ -134,16 +119,14 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Title',
                 'sort_order' => 1,
                 'price' => 10.1,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_type' => 'file',
                 'link_file_content' => [
-                    //phpcs:ignore Magento2.Functions.DiscouragedFunction
                     'file_data' => base64_encode(file_get_contents($this->testImagePath)),
                     'name' => 'image.jpg',
                 ],
                 'sample_file_content' => [
-                    //phpcs:ignore Magento2.Functions.DiscouragedFunction
                     'file_data' => base64_encode(file_get_contents($this->testImagePath)),
                     'name' => 'image.jpg',
                 ],
@@ -160,7 +143,7 @@ class LinkRepositoryTest extends WebapiAbstract
         $this->assertEquals($requestData['link']['sort_order'], $link->getSortOrder());
         $this->assertEquals($requestData['link']['price'], $link->getPrice());
         $this->assertEquals($requestData['link']['price'], $globalScopeLink->getPrice());
-        $this->assertEquals($requestData['link']['is_shareable'], (int)$link->getIsShareable());
+        $this->assertEquals($requestData['link']['is_shareable'], $link->getIsShareable());
         $this->assertEquals($requestData['link']['number_of_downloads'], $link->getNumberOfDownloads());
         $this->assertEquals($requestData['link']['link_type'], $link->getLinkType());
         $this->assertEquals($requestData['link']['sample_type'], $link->getSampleType());
@@ -182,7 +165,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Store View Title',
                 'sort_order' => 1,
                 'price' => 150,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_url' => 'http://www.example.com/',
                 'link_type' => 'url',
@@ -198,7 +181,7 @@ class LinkRepositoryTest extends WebapiAbstract
         $this->assertEquals($requestData['link']['title'], $link->getTitle());
         $this->assertEquals($requestData['link']['sort_order'], $link->getSortOrder());
         $this->assertEquals($requestData['link']['price'], $link->getPrice());
-        $this->assertEquals($requestData['link']['is_shareable'], (int)$link->getIsShareable());
+        $this->assertEquals($requestData['link']['is_shareable'], $link->getIsShareable());
         $this->assertEquals($requestData['link']['number_of_downloads'], $link->getNumberOfDownloads());
         $this->assertEquals($requestData['link']['link_url'], $link->getLinkUrl());
         $this->assertEquals($requestData['link']['link_type'], $link->getLinkType());
@@ -220,7 +203,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link with URL resources',
                 'sort_order' => 1,
                 'price' => 10.1,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_url' => 'http://www.example.com/',
                 'link_type' => 'url',
@@ -235,7 +218,7 @@ class LinkRepositoryTest extends WebapiAbstract
         $this->assertEquals($requestData['link']['title'], $link->getTitle());
         $this->assertEquals($requestData['link']['sort_order'], $link->getSortOrder());
         $this->assertEquals($requestData['link']['price'], $link->getPrice());
-        $this->assertEquals($requestData['link']['is_shareable'], (int)$link->getIsShareable());
+        $this->assertEquals($requestData['link']['is_shareable'], $link->getIsShareable());
         $this->assertEquals($requestData['link']['number_of_downloads'], $link->getNumberOfDownloads());
         $this->assertEquals($requestData['link']['link_url'], $link->getLinkUrl());
         $this->assertEquals($requestData['link']['link_type'], $link->getLinkType());
@@ -246,7 +229,7 @@ class LinkRepositoryTest extends WebapiAbstract
     /**
      * @magentoApiDataFixture Magento/Downloadable/_files/product_downloadable.php
      * @expectedException \Exception
-     * @expectedExceptionMessage The link type is invalid. Verify and try again.
+     * @expectedExceptionMessage Invalid link type.
      */
     public function testCreateThrowsExceptionIfLinkTypeIsNotSpecified()
     {
@@ -257,7 +240,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link with URL resources',
                 'sort_order' => 1,
                 'price' => 10.1,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_type' => 'invalid',
                 'sample_type' => 'url',
@@ -282,7 +265,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 1,
                 'price' => 10,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_type' => 'url',
                 'link_url' => 'http://www.example.com/',
@@ -291,64 +274,6 @@ class LinkRepositoryTest extends WebapiAbstract
                     'file_data' => 'not_a_base64_encoded_content',
                     'name' => 'image.jpg',
                 ],
-            ],
-        ];
-
-        $this->_webApiCall($this->createServiceInfo, $requestData);
-    }
-
-    /**
-     * Check that error appears when link file not existing in filesystem.
-     *
-     * @magentoApiDataFixture Magento/Downloadable/_files/product_downloadable.php
-     * @expectedException \Exception
-     * @expectedExceptionMessage Link file not found. Please try again.
-     * @return void
-     */
-    public function testCreateLinkWithMissingLinkFileThrowsException(): void
-    {
-        $requestData = [
-            'isGlobalScopeContent' => false,
-            'sku' => 'downloadable-product',
-            'link' => [
-                'title' => 'Link Title',
-                'sort_order' => 1,
-                'price' => 10,
-                'is_shareable' => 1,
-                'number_of_downloads' => 100,
-                'link_type' => 'file',
-                'link_file' => '/n/o/nexistfile.png',
-                'sample_type' => 'url',
-                'sample_file' => 'http://google.com',
-            ],
-        ];
-
-        $this->_webApiCall($this->createServiceInfo, $requestData);
-    }
-
-    /**
-     * Check that error appears when link sample file not existing in filesystem.
-     *
-     * @magentoApiDataFixture Magento/Downloadable/_files/product_downloadable.php
-     * @expectedException \Exception
-     * @expectedExceptionMessage Link sample file not found. Please try again.
-     * @return void
-     */
-    public function testCreateLinkWithMissingSampleFileThrowsException(): void
-    {
-        $requestData = [
-            'isGlobalScopeContent' => false,
-            'sku' => 'downloadable-product',
-            'link' => [
-                'title' => 'Link Title',
-                'sort_order' => 1,
-                'price' => 10,
-                'is_shareable' => 1,
-                'number_of_downloads' => 100,
-                'link_type' => 'url',
-                'link_url' => 'http://www.example.com/',
-                'sample_type' => 'file',
-                'sample_file' => '/n/o/nexistfile.png',
             ],
         ];
 
@@ -369,7 +294,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 1,
                 'price' => 10,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_type' => 'file',
                 'link_file_content' => [
@@ -398,11 +323,10 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Title',
                 'sort_order' => 15,
                 'price' => 10,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_type' => 'file',
                 'link_file_content' => [
-                    //phpcs:ignore Magento2.Functions.DiscouragedFunction
                     'file_data' => base64_encode(file_get_contents($this->testImagePath)),
                     'name' => 'name/with|forbidden{characters',
                 ],
@@ -428,13 +352,12 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 1,
                 'price' => 10,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_type' => 'url',
                 'link_url' => 'http://www.example.com/',
                 'sample_type' => 'file',
                 'sample_file_content' => [
-                    //phpcs:ignore Magento2.Functions.DiscouragedFunction
                     'file_data' => base64_encode(file_get_contents($this->testImagePath)),
                     'name' => 'name/with|forbidden{characters',
                 ],
@@ -458,64 +381,12 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 1,
                 'price' => 10,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'link_type' => 'url',
                 'link_url' => 'http://example<.>com/',
                 'sample_type' => 'url',
                 'sample_url' => 'http://www.example.com/',
-            ],
-        ];
-
-        $this->_webApiCall($this->createServiceInfo, $requestData);
-    }
-
-    /**
-     * @magentoApiDataFixture Magento/Downloadable/_files/product_downloadable.php
-     * @expectedException \Exception
-     * @expectedExceptionMessage Link URL's domain is not in list of downloadable_domains in env.php.
-     */
-    public function testCreateThrowsExceptionIfLinkUrlUsesDomainNotInWhitelist()
-    {
-        $requestData = [
-            'isGlobalScopeContent' => false,
-            'sku' => 'downloadable-product',
-            'link' => [
-                'title' => 'Link Title',
-                'sort_order' => 1,
-                'price' => 10,
-                'is_shareable' => 1,
-                'number_of_downloads' => 100,
-                'link_type' => 'url',
-                'link_url' => 'http://notAnywhereInEnv.com/',
-                'sample_type' => 'url',
-                'sample_url' => 'http://www.example.com/',
-            ],
-        ];
-
-        $this->_webApiCall($this->createServiceInfo, $requestData);
-    }
-
-    /**
-     * @magentoApiDataFixture Magento/Downloadable/_files/product_downloadable.php
-     * @expectedException \Exception
-     * @expectedExceptionMessage Sample URL's domain is not in list of downloadable_domains in env.php.
-     */
-    public function testCreateThrowsExceptionIfSampleUrlUsesDomainNotInWhitelist()
-    {
-        $requestData = [
-            'isGlobalScopeContent' => false,
-            'sku' => 'downloadable-product',
-            'link' => [
-                'title' => 'Link Title',
-                'sort_order' => 1,
-                'price' => 10,
-                'is_shareable' => 1,
-                'number_of_downloads' => 100,
-                'link_type' => 'url',
-                'link_url' => 'http://example.com/',
-                'sample_type' => 'url',
-                'sample_url' => 'http://www.notAnywhereInEnv.com/',
             ],
         ];
 
@@ -536,7 +407,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 1,
                 'price' => 150,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 0,
                 'sample_type' => 'url',
                 'sample_url' => 'http://example<.>com/',
@@ -563,7 +434,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 1,
                 'price' => $linkPrice,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 0,
                 'sample_type' => 'url',
                 'sample_url' => 'http://example.com/',
@@ -600,7 +471,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => $sortOrder,
                 'price' => 10,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => 0,
                 'sample_type' => 'url',
                 'sample_url' => 'http://example.com/',
@@ -636,7 +507,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 0,
                 'price' => 10,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => $numberOfDownloads,
                 'sample_type' => 'url',
                 'sample_url' => 'http://example.com/',
@@ -660,7 +531,7 @@ class LinkRepositoryTest extends WebapiAbstract
     /**
      * @magentoApiDataFixture Magento/Catalog/_files/product_simple.php
      * @expectedException \Exception
-     * @expectedExceptionMessage The product needs to be the downloadable type. Verify the product and try again.
+     * @expectedExceptionMessage Product type of the product must be 'downloadable'.
      */
     public function testCreateThrowsExceptionIfTargetProductTypeIsNotDownloadable()
     {
@@ -672,7 +543,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 50,
                 'price' => 200,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => 10,
                 'sample_type' => 'url',
                 'sample_url' => 'http://example.com/',
@@ -685,7 +556,7 @@ class LinkRepositoryTest extends WebapiAbstract
 
     /**
      * @expectedException \Exception
-     * @expectedExceptionMessage The product that was requested doesn't exist. Verify the product and try again.
+     * @expectedExceptionMessage Requested product doesn't exist
      */
     public function testCreateThrowsExceptionIfTargetProductDoesNotExist()
     {
@@ -697,7 +568,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Link Title',
                 'sort_order' => 15,
                 'price' => 200,
-                'is_shareable' => 1,
+                'is_shareable' => true,
                 'number_of_downloads' => 100,
                 'sample_type' => 'url',
                 'sample_url' => 'http://example.com/',
@@ -724,12 +595,10 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Updated Title',
                 'sort_order' => 2,
                 'price' => 100.10,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => 50,
                 'link_type' => 'url',
-                'link_url' => 'http://google.com',
                 'sample_type' => 'url',
-                'sample_url' => 'http://google.com',
             ],
         ];
         $this->assertEquals($linkId, $this->_webApiCall($this->updateServiceInfo, $requestData));
@@ -738,7 +607,7 @@ class LinkRepositoryTest extends WebapiAbstract
         $this->assertEquals($requestData['link']['title'], $link->getTitle());
         $this->assertEquals($requestData['link']['sort_order'], $link->getSortOrder());
         $this->assertEquals($requestData['link']['price'], $link->getPrice());
-        $this->assertEquals($requestData['link']['is_shareable'], (int)$link->getIsShareable());
+        $this->assertEquals($requestData['link']['is_shareable'], (bool)$link->getIsShareable());
         $this->assertEquals($requestData['link']['number_of_downloads'], $link->getNumberOfDownloads());
     }
 
@@ -759,12 +628,10 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Updated Title',
                 'sort_order' => 2,
                 'price' => 100.10,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => 50,
                 'link_type' => 'url',
-                'link_url' => 'http://google.com',
                 'sample_type' => 'url',
-                'sample_url' => 'http://google.com',
             ],
         ];
 
@@ -778,13 +645,13 @@ class LinkRepositoryTest extends WebapiAbstract
         $this->assertEquals($requestData['link']['title'], $globalScopeLink->getTitle());
         $this->assertEquals($requestData['link']['price'], $globalScopeLink->getPrice());
         $this->assertEquals($requestData['link']['sort_order'], $link->getSortOrder());
-        $this->assertEquals($requestData['link']['is_shareable'], (int)$link->getIsShareable());
+        $this->assertEquals($requestData['link']['is_shareable'], (bool)$link->getIsShareable());
         $this->assertEquals($requestData['link']['number_of_downloads'], $link->getNumberOfDownloads());
     }
 
     /**
      * @expectedException \Exception
-     * @expectedExceptionMessage The product that was requested doesn't exist. Verify the product and try again.
+     * @expectedExceptionMessage Requested product doesn't exist
      */
     public function testUpdateThrowsExceptionIfTargetProductDoesNotExist()
     {
@@ -797,7 +664,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Updated Title',
                 'sort_order' => 2,
                 'price' => 100.10,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => 50,
                 'link_type' => 'url',
                 'sample_type' => 'url',
@@ -809,7 +676,7 @@ class LinkRepositoryTest extends WebapiAbstract
     /**
      * @magentoApiDataFixture Magento/Downloadable/_files/product_downloadable.php
      * @expectedException \Exception
-     * @expectedExceptionMessage No downloadable link with the provided ID was found. Verify the ID and try again.
+     * @expectedExceptionMessage There is no downloadable link with provided ID.
      */
     public function testUpdateThrowsExceptionIfThereIsNoDownloadableLinkWithGivenId()
     {
@@ -824,7 +691,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Title',
                 'sort_order' => 2,
                 'price' => 100.10,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => 50,
                 'link_type' => 'url',
                 'sample_type' => 'url',
@@ -853,7 +720,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Updated Link Title',
                 'sort_order' => 2,
                 'price' => $linkPrice,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => 50,
                 'link_type' => 'url',
                 'sample_type' => 'url',
@@ -882,7 +749,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Updated Link Title',
                 'sort_order' => $sortOrder,
                 'price' => 100.50,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => 50,
                 'link_type' => 'url',
                 'sample_type' => 'url',
@@ -910,7 +777,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'title' => 'Updated Link Title',
                 'sort_order' => 200,
                 'price' => 100.50,
-                'is_shareable' => 0,
+                'is_shareable' => false,
                 'number_of_downloads' => $numberOfDownloads,
                 'link_type' => 'url',
                 'sample_type' => 'url',
@@ -937,7 +804,7 @@ class LinkRepositoryTest extends WebapiAbstract
 
     /**
      * @expectedException \Exception
-     * @expectedExceptionMessage No downloadable link with the provided ID was found. Verify the ID and try again.
+     * @expectedExceptionMessage There is no downloadable link with provided ID.
      */
     public function testDeleteThrowsExceptionIfThereIsNoDownloadableLinkWithGivenId()
     {
@@ -971,7 +838,7 @@ class LinkRepositoryTest extends WebapiAbstract
 
         $requestData = ['sku' => $sku];
 
-        $expectedMessage = "The product that was requested doesn't exist. Verify the product and try again.";
+        $expectedMessage = 'Requested product doesn\'t exist';
         try {
             $this->_webApiCall($serviceInfo, $requestData);
         } catch (\SoapFault $e) {
@@ -1037,7 +904,6 @@ class LinkRepositoryTest extends WebapiAbstract
         foreach ($expectations['fields'] as $index => $value) {
             $this->assertEquals($value, $link[$index]);
         }
-        $this->assertContains('jellyfish_1_3.jpg', $link['sample_file']);
     }
 
     public function getListForAbsentProductProvider()
@@ -1047,6 +913,7 @@ class LinkRepositoryTest extends WebapiAbstract
                 'is_shareable' => 2,
                 'price' => 15,
                 'number_of_downloads' => 15,
+                'sample_file' => '/n/d/jellyfish_1_3.jpg',
                 'sample_type' => 'file',
                 'link_file' => '/j/e/jellyfish_2_4.jpg',
                 'link_type' => 'file'

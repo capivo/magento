@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -26,7 +26,7 @@ class AssertTermAbsentInGrid extends AbstractConstraint
     public function processAssert(CheckoutAgreementIndex $agreementIndex, CheckoutAgreement $agreement)
     {
         $agreementIndex->open();
-        \PHPUnit\Framework\Assert::assertFalse(
+        \PHPUnit_Framework_Assert::assertFalse(
             $agreementIndex->getAgreementGridBlock()->isRowVisible(['name' => $agreement->getName()]),
             'Checkout Agreement \'' . $agreement->getName() . '\' is present in agreement grid.'
         );

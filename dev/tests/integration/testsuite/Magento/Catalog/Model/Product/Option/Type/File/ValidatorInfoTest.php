@@ -1,16 +1,14 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\Catalog\Model\Product\Option\Type\File;
 
 /**
  * @magentoDataFixture Magento/Catalog/_files/validate_image_info.php
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
+class ValidatorInfoTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var ValidatorInfo
@@ -18,7 +16,7 @@ class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
     protected $model;
 
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
+     * @var \Magento\Framework\ObjectManager
      */
     protected $objectManager;
 
@@ -30,22 +28,19 @@ class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
      */
     protected $validateFactoryMock;
 
-    /**
-     * {@inheritdoc}
-     */
     protected function setUp()
     {
         $this->objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
         /** @var \Magento\Framework\File\Size $fileSize */
-        $fileSize = $this->objectManager->create(\Magento\Framework\File\Size::class);
+        $fileSize = $this->objectManager->create('Magento\Framework\File\Size');
         $this->maxFileSizeInMb = $fileSize->getMaxFileSizeInMb();
 
-        $this->validateFactoryMock = $this->createPartialMock(
-            \Magento\Catalog\Model\Product\Option\Type\File\ValidateFactory::class,
+        $this->validateFactoryMock = $this->getMock(
+            'Magento\Catalog\Model\Product\Option\Type\File\ValidateFactory',
             ['create']
         );
         $this->model = $this->objectManager->create(
-            \Magento\Catalog\Model\Product\Option\Type\File\ValidatorInfo::class,
+            'Magento\Catalog\Model\Product\Option\Type\File\ValidatorInfo',
             [
                 'validateFactory' => $this->validateFactoryMock,
             ]
@@ -57,8 +52,8 @@ class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
      */
     public function testExceptionWithErrors()
     {
-        $this->expectException(\Magento\Framework\Exception\LocalizedException::class);
-        $this->expectExceptionMessage(
+        $this->setExpectedException(
+            '\Magento\Framework\Exception\LocalizedException',
             "The file 'test.jpg' for 'MediaOption' has an invalid extension.\n"
             . "The file 'test.jpg' for 'MediaOption' has an invalid extension.\n"
             . "The maximum allowed image size for 'MediaOption' is 2000x2000 px.\n"
@@ -68,7 +63,7 @@ class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
             )
         );
 
-        $validateMock = $this->createPartialMock(\Zend_Validate::class, ['isValid', 'getErrors']);
+        $validateMock = $this->getMock('Zend_Validate', ['isValid', 'getErrors']);
         $validateMock->expects($this->once())->method('isValid')->will($this->returnValue(false));
         $validateMock->expects($this->exactly(2))->method('getErrors')->will($this->returnValue([
             \Zend_Validate_File_ExcludeExtension::FALSE_EXTENSION,
@@ -91,12 +86,12 @@ class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
      */
     public function testExceptionWithoutErrors()
     {
-        $this->expectException(\Magento\Framework\Exception\LocalizedException::class);
-        $this->expectExceptionMessage(
-            "The product's required option(s) weren't entered. Make sure the options are entered and try again."
+        $this->setExpectedException(
+            '\Magento\Framework\Exception\LocalizedException',
+            "Please specify product's required option(s)."
         );
 
-        $validateMock = $this->createPartialMock(\Zend_Validate::class, ['isValid', 'getErrors']);
+        $validateMock = $this->getMock('Zend_Validate', ['isValid', 'getErrors']);
         $validateMock->expects($this->once())->method('isValid')->will($this->returnValue(false));
         $validateMock->expects($this->exactly(1))->method('getErrors')->will($this->returnValue(false));
         $this->validateFactoryMock->expects($this->once())
@@ -114,11 +109,11 @@ class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidate()
     {
-        //use actual zend class to test changed functionality
-        $validate = $this->objectManager->create(\Zend_Validate::class);
+        $validateMock = $this->getMock('Zend_Validate', ['isValid']);
+        $validateMock->expects($this->once())->method('isValid')->will($this->returnValue(true));
         $this->validateFactoryMock->expects($this->once())
             ->method('create')
-            ->will($this->returnValue($validate));
+            ->will($this->returnValue($validateMock));
         $this->assertTrue(
             $this->model->validate(
                 $this->getOptionValue(),
@@ -155,7 +150,7 @@ class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
             'price_type' => 'fixed',
         ];
         $option = $this->objectManager->create(
-            \Magento\Catalog\Model\Product\Option::class,
+            'Magento\Catalog\Model\Product\Option',
             [
                 'data' => array_merge($data, $options)
             ]
@@ -169,17 +164,15 @@ class ValidatorInfoTest extends \PHPUnit\Framework\TestCase
      */
     protected function getOptionValue()
     {
-        /** @var \Magento\Catalog\Model\Product\Media\Config $config */
-        $config = $this->objectManager->get(\Magento\Catalog\Model\Product\Media\Config::class);
-        $file = $config->getBaseTmpMediaPath() . '/magento_small_image.jpg';
+        $file     = 'var/tmp/magento_small_image.jpg';
 
-        /** @var \Magento\Framework\Filesystem $filesystem */
-        $filesystem = $this->objectManager->get(\Magento\Framework\Filesystem::class);
-        $tmpDirectory = $filesystem->getDirectoryRead(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA);
+        /** @var \Magento\Framework\App\Filesystem $filesystem */
+        $filesystem = $this->objectManager->get('Magento\Framework\Filesystem');
+        $tmpDirectory = $filesystem->getDirectoryWrite(\Magento\Framework\App\Filesystem\DirectoryList::ROOT);
         $filePath = $tmpDirectory->getAbsolutePath($file);
 
         return [
-            'title' => 'test.jpg',
+            'title'      => 'test.jpg',
             'quote_path' => $file,
             'order_path' => $file,
             'secret_key' => substr(md5(file_get_contents($filePath)), 0, 20),

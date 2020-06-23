@@ -1,15 +1,12 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Backend\Controller\Adminhtml;
 
-use Magento\Framework\App\Request\Http as HttpRequest;
-
 /**
  * @magentoAppArea adminhtml
- * @magentoDbIsolation enabled
  */
 class IndexTest extends \Magento\TestFramework\TestCase\AbstractBackendController
 {
@@ -23,7 +20,7 @@ class IndexTest extends \Magento\TestFramework\TestCase\AbstractBackendControlle
         $this->dispatch('backend/admin/index/index');
         /** @var $backendUrlModel \Magento\Backend\Model\UrlInterface */
         $backendUrlModel = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-            \Magento\Backend\Model\UrlInterface::class
+            'Magento\Backend\Model\UrlInterface'
         );
         $backendUrlModel->turnOffSecretKey();
         $url = $backendUrlModel->getUrl('admin');
@@ -33,7 +30,7 @@ class IndexTest extends \Magento\TestFramework\TestCase\AbstractBackendControlle
     /**
      * Check logged state
      * @covers \Magento\Backend\Controller\Adminhtml\Index\Index::execute
-     *
+     * @magentoDbIsolation enabled
      */
     public function testLoggedIndexAction()
     {
@@ -47,7 +44,6 @@ class IndexTest extends \Magento\TestFramework\TestCase\AbstractBackendControlle
     public function testGlobalSearchAction()
     {
         $this->getRequest()->setParam('isAjax', 'true');
-        $this->getRequest()->setMethod(HttpRequest::METHOD_POST);
         $this->getRequest()->setPostValue('query', 'dummy');
         $this->dispatch('backend/admin/index/globalSearch');
 

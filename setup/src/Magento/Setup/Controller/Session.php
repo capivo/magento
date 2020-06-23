@@ -1,14 +1,15 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Setup\Controller;
 
-/**
- * Sets up session for setup/index.php/session/prolong or redirects to error page
- */
-class Session extends \Zend\Mvc\Controller\AbstractActionController
+use Zend\Mvc\Controller\AbstractActionController;
+use Zend\View\Model\JsonModel;
+use Zend\View\Model\ViewModel;
+
+class Session extends AbstractActionController
 {
     /**
      * @var \Zend\ServiceManager\ServiceManager
@@ -33,19 +34,6 @@ class Session extends \Zend\Mvc\Controller\AbstractActionController
     }
 
     /**
-     * No index action, return 404 error page
-     *
-     * @return \Zend\View\Model\ViewModel|\Zend\Http\Response
-     */
-    public function indexAction()
-    {
-        $view = new \Zend\View\Model\ViewModel();
-        $view->setTemplate('/error/404.phtml');
-        $this->getResponse()->setStatusCode(\Zend\Http\Response::STATUS_CODE_404);
-        return $view;
-    }
-
-    /**
      * Prolong session
      *
      * @return string
@@ -53,46 +41,36 @@ class Session extends \Zend\Mvc\Controller\AbstractActionController
     public function prolongAction()
     {
         try {
-            if ($this->serviceManager->get(\Magento\Framework\App\DeploymentConfig::class)->isAvailable()) {
+            if ($this->serviceManager->get('Magento\Framework\App\DeploymentConfig')->isAvailable()) {
                 $objectManager = $this->objectManagerProvider->get();
+                /** @var \Magento\Framework\App\State $adminAppState */
+                $adminAppState = $objectManager->get('Magento\Framework\App\State');
+                $adminAppState->setAreaCode(\Magento\Framework\App\Area::AREA_ADMIN);
+
                 /* @var \Magento\Backend\Model\Auth\Session $session */
-                $session = $objectManager->get(\Magento\Backend\Model\Auth\Session::class);
-                // check if session was already set in \Magento\Setup\Mvc\Bootstrap\InitParamListener::authPreDispatch
-                if (!$session->isSessionExists()) {
-                    /** @var \Magento\Framework\App\State $adminAppState */
-                    $adminAppState = $objectManager->get(\Magento\Framework\App\State::class);
-                    $adminAppState->setAreaCode(\Magento\Framework\App\Area::AREA_ADMINHTML);
-                    $sessionConfig = $objectManager->get(\Magento\Backend\Model\Session\AdminConfig::class);
-                    /** @var \Magento\Backend\Model\Url $backendUrl */
-                    $backendUrl = $objectManager->get(\Magento\Backend\Model\Url::class);
-                    $urlPath = parse_url($backendUrl->getBaseUrl(), PHP_URL_PATH);
-                    $cookiePath = $urlPath . 'setup';
-                    $sessionConfig->setCookiePath($cookiePath);
-                    /* @var \Magento\Backend\Model\Auth\Session $session */
-                    $session = $objectManager->create(
-                        \Magento\Backend\Model\Auth\Session::class,
-                        [
-                            'sessionConfig' => $sessionConfig,
-                            'appState' => $adminAppState
-                        ]
-                    );
-                }
+                $sessionConfig = $objectManager->get('Magento\Backend\Model\Session\AdminConfig');
+                $sessionConfig->setCookiePath('/setup');
+                $session = $objectManager->create(
+                    'Magento\Backend\Model\Auth\Session',
+                    [
+                        'sessionConfig' => $sessionConfig,
+                        'appState' => $adminAppState
+                    ]
+                );
                 $session->prolong();
-                return new \Zend\View\Model\JsonModel(['success' => true]);
+                return new JsonModel(['success' => true]);
             }
         } catch (\Exception $e) {
         }
-        return new \Zend\View\Model\JsonModel(['success' => false]);
+        return new JsonModel(['success' => false]);
     }
 
     /**
-     * Unlogin action, return 401 error page
-     *
-     * @return \Zend\View\Model\ViewModel|\Zend\Http\Response
+     * @return ViewModel|\Zend\Http\Response
      */
     public function unloginAction()
     {
-        $view = new \Zend\View\Model\ViewModel();
+        $view = new ViewModel();
         $view->setTemplate('/error/401.phtml');
         $this->getResponse()->setStatusCode(\Zend\Http\Response::STATUS_CODE_401);
         return $view;

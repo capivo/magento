@@ -1,11 +1,12 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Backend\Test\Constraint;
 
+use Magento\Backend\Test\Fixture\GlobalSearch;
 use Magento\Backend\Test\Page\Adminhtml\Dashboard;
 use Magento\Mtf\Constraint\AbstractConstraint;
 
@@ -25,12 +26,12 @@ class AssertBackendPageIsAvailable extends AbstractConstraint
      */
     public function processAssert(Dashboard $dashboard, $pageTitle)
     {
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $pageTitle,
             $dashboard->getTitleBlock()->getTitle(),
             'Invalid page title is displayed.'
         );
-        \PHPUnit\Framework\Assert::assertNotContains(
+        \PHPUnit_Framework_Assert::assertNotContains(
             self::ERROR_TEXT,
             $dashboard->getErrorBlock()->getContent(),
             "404 Error is displayed on '$pageTitle' page."

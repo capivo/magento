@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -34,7 +34,6 @@ class AssertAdvancedSearchProductByAttribute extends AbstractConstraint
      * @param AdvancedSearch $searchPage
      * @param CatalogsearchResult $catalogSearchResult
      * @param FixtureFactory $fixtureFactory
-     * @param int|null $attributeValue
      * @return void
      */
     public function processAssert(
@@ -42,37 +41,33 @@ class AssertAdvancedSearchProductByAttribute extends AbstractConstraint
         InjectableFixture $product,
         AdvancedSearch $searchPage,
         CatalogsearchResult $catalogSearchResult,
-        FixtureFactory $fixtureFactory,
-        $attributeValue = null
+        FixtureFactory $fixtureFactory
     ) {
         $this->fixtureFactory = $fixtureFactory;
         $cmsIndex->open();
         $cmsIndex->getFooterBlock()->openAdvancedSearch();
         $searchForm = $searchPage->getForm();
-        $productSearch = $this->prepareFixture($product, $attributeValue);
+        $productSearch = $this->prepareFixture($product);
 
         $searchForm->fill($productSearch);
         $searchForm->submit();
-        do {
+        $isVisible = $catalogSearchResult->getListProductBlock()->getProductItem($product)->isVisible();
+        while (!$isVisible && $catalogSearchResult->getBottomToolbar()->nextPage()) {
             $isVisible = $catalogSearchResult->getListProductBlock()->getProductItem($product)->isVisible();
-        } while (!$isVisible && $catalogSearchResult->getBottomToolbar()->nextPage());
+        }
 
-        \PHPUnit\Framework\Assert::assertTrue($isVisible, 'Product attribute is not searchable on Frontend.');
+        \PHPUnit_Framework_Assert::assertTrue($isVisible, 'Product attribute is not searchable on Frontend.');
     }
 
     /**
      * Preparation of fixture data before comparing.
      *
      * @param InjectableFixture $productSearch
-     * @param int|null $attributeValue
      * @return CatalogProductSimple
      */
-    protected function prepareFixture(InjectableFixture $productSearch, $attributeValue)
+    protected function prepareFixture(InjectableFixture $productSearch)
     {
         $customAttribute = $productSearch->getDataFieldConfig('custom_attribute')['source']->getAttribute();
-        if ($attributeValue !== null) {
-            $customAttribute = ['value' => $attributeValue, 'attribute' => $customAttribute];
-        }
         return $this->fixtureFactory->createByCode(
             'catalogProductSimple',
             ['data' => ['custom_attribute' => $customAttribute]]

@@ -1,8 +1,10 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
 
 namespace Magento\Setup\Test\Unit\Module\Di\Definition;
 
@@ -10,7 +12,7 @@ namespace Magento\Setup\Test\Unit\Module\Di\Definition;
  * Class CollectionTest
  * @package Magento\Setup\Module\Di\Definition
  */
-class CollectionTest extends \PHPUnit\Framework\TestCase
+class CollectionTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \Magento\Setup\Module\Di\Definition\Collection
@@ -54,7 +56,7 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     protected function setUp()
     {
-        $this->collectionMock = $this->getMockBuilder(\Magento\Setup\Module\Di\Definition\Collection::class)
+        $this->collectionMock = $this->getMockBuilder('\Magento\Setup\Module\Di\Definition\Collection')
             ->setMethods([])->getMock();
         $this->model = new \Magento\Setup\Module\Di\Definition\Collection();
     }
@@ -97,7 +99,6 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         $this->model->addCollection($this->collectionMock);
         $this->assertEquals(
             [self::INSTANCE_1 => $this->getArgument(), self::INSTANCE_2 => $this->getArgument()],
-            $this->model->getCollection()
-        );
+            $this->model->getCollection());
     }
 }

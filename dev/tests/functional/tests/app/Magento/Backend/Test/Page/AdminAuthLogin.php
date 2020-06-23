@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Backend\Test\Page;
@@ -41,11 +41,6 @@ class AdminAuthLogin extends Page
     protected $messagesBlock = '.messages';
 
     /**
-     * Admin Analytics selector
-     */
-    protected $adminUsageSelector ='.modal-inner-wrap';
-
-    /**
      * Constructor.
      */
     protected function initUrl()
@@ -80,22 +75,11 @@ class AdminAuthLogin extends Page
     /**
      * Get global messages block.
      *
-     * @return \Magento\Ui\Test\Block\Adminhtml\Modal
-
+     * @return \Magento\Backend\Test\Block\Messages
      */
     public function getMessagesBlock()
     {
         return Factory::getBlockFactory()->getMagentoBackendMessages($this->browser->find($this->messagesBlock));
-    }
-
-    /**
-     * Get modal block
-     *
-     * @return void
-     */
-    public function getModalBlock()
-    {
-        return Factory::getBlockFactory()->getMagentoUiAdminhtmlModal($this->browser->find($this->adminUsageSelector));
     }
 
     /**
@@ -113,15 +97,5 @@ class AdminAuthLogin extends Page
                 return $item->isVisible() ? true : null;
             }
         );
-    }
-
-    /**
-     * Dismiss admin usage notification
-     *
-     * @return void
-     */
-    public function dismissAdminUsageNotification()
-    {
-        $this->getModalBlock()->dismissIfModalAppears();
     }
 }

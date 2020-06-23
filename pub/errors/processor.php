@@ -1,23 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-declare(strict_types=1);
-
 namespace Magento\Framework\Error;
-
-use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Framework\Escaper;
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\Response\Http;
+use Magento\Framework\Filesystem\DriverInterface;
 
 /**
  * Error processor
- *
- * @SuppressWarnings(PHPMD.TooManyFields)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
- * phpcs:ignoreFile
  */
 class Processor
 {
@@ -25,54 +15,53 @@ class Processor
     const MAGE_ERRORS_DESIGN_XML = 'design.xml';
     const DEFAULT_SKIN = 'default';
     const ERROR_DIR = 'pub/errors';
-    const NUMBER_SYMBOLS_IN_SUBDIR_NAME = 2;
 
     /**
      * Page title
      *
      * @var string
-     */
+    */
     public $pageTitle;
 
     /**
      * Skin URL
      *
      * @var string
-     */
+    */
     public $skinUrl;
 
     /**
      * Base URL
      *
      * @var string
-     */
+    */
     public $baseUrl;
 
     /**
      * Post data
      *
      * @var array
-     */
+    */
     public $postData;
 
     /**
      * Report data
      *
      * @var array
-     */
+    */
     public $reportData;
 
     /**
      * Report action
      *
      * @var string
-     */
+    */
     public $reportAction;
 
     /**
      * Report ID
      *
-     * @var string
+     * @var int
      */
     public $reportId;
 
@@ -80,28 +69,28 @@ class Processor
      * Report file
      *
      * @var string
-     */
+    */
     protected $_reportFile;
 
     /**
      * Show error message
      *
      * @var bool
-     */
+    */
     public $showErrorMsg;
 
     /**
      * Show message after sending email
      *
      * @var bool
-     */
+    */
     public $showSentMsg;
 
     /**
      * Show form for sending
      *
      * @var bool
-     */
+    */
     public $showSendForm;
 
     /**
@@ -113,57 +102,38 @@ class Processor
      * Server script name
      *
      * @var string
-     */
+    */
     protected $_scriptName;
 
     /**
      * Is root
      *
      * @var bool
-     */
+    */
     protected $_root;
 
     /**
      * Internal config object
      *
      * @var \stdClass
-     */
+    */
     protected $_config;
 
     /**
      * Http response
      *
-     * @var Http
+     * @var \Magento\Framework\App\Response\Http
      */
     protected $_response;
 
     /**
-     * JSON serializer
-     *
-     * @var Json
+     * @param \Magento\Framework\App\Response\Http $response
      */
-    private $serializer;
-
-    /**
-     * @var Escaper
-     */
-    private $escaper;
-
-    /**
-     * @param Http $response
-     * @param Json $serializer
-     * @param Escaper $escaper
-     */
-    public function __construct(
-        Http $response,
-        Json $serializer = null,
-        Escaper $escaper = null
-    ) {
+    public function __construct(\Magento\Framework\App\Response\Http $response)
+    {
         $this->_response = $response;
         $this->_errorDir  = __DIR__ . '/';
         $this->_reportDir = dirname(dirname($this->_errorDir)) . '/var/report/';
-        $this->serializer = $serializer ?: ObjectManager::getInstance()->get(Json::class);
-        $this->escaper = $escaper ?: ObjectManager::getInstance()->get(Escaper::class);
 
         if (!empty($_SERVER['SCRIPT_NAME'])) {
             if (in_array(basename($_SERVER['SCRIPT_NAME'], '.php'), ['404', '503', 'report'])) {
@@ -173,15 +143,17 @@ class Processor
             }
         }
 
+        $reportId = (isset($_GET['id'])) ? (int)$_GET['id'] : null;
+        if ($reportId) {
+            $this->loadReport($reportId);
+        }
+
         $this->_indexDir = $this->_getIndexDir();
         $this->_root  = is_dir($this->_indexDir . 'app');
 
         $this->_prepareConfig();
         if (isset($_GET['skin'])) {
             $this->_setSkin($_GET['skin']);
-        }
-        if (isset($_GET['id'])) {
-            $this->loadReport($_GET['id']);
         }
     }
 
@@ -231,7 +203,7 @@ class Processor
     public function processReport()
     {
         $this->pageTitle = 'There has been an error processing your request';
-        $this->_response->setHttpResponseCode(500);
+        $this->_response->setHttpResponseCode(503);
 
         $this->showErrorMsg = false;
         $this->showSentMsg  = false;
@@ -273,28 +245,6 @@ class Processor
         /**
          * Define server http host
          */
-        $host = $this->resolveHostName();
-
-        $isSecure = (!empty($_SERVER['HTTPS'])) && ($_SERVER['HTTPS'] !== 'off')
-            || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-        $url = ($isSecure ? 'https://' : 'http://') . $host;
-
-        $port = explode(':', $host);
-        if (isset($port[1]) && !in_array($port[1], [80, 443])
-            && !preg_match('/.*?\:[0-9]+$/', $url)
-        ) {
-            $url .= ':' . $port[1];
-        }
-        return  $url;
-    }
-
-    /**
-     * Resolve hostname
-     *
-     * @return string
-     */
-    private function resolveHostName() : string
-    {
         if (!empty($_SERVER['HTTP_HOST'])) {
             $host = $_SERVER['HTTP_HOST'];
         } elseif (!empty($_SERVER['SERVER_NAME'])) {
@@ -302,7 +252,16 @@ class Processor
         } else {
             $host = 'localhost';
         }
-        return $host;
+
+        $isSecure = (!empty($_SERVER['HTTPS'])) && ($_SERVER['HTTPS'] != 'off');
+        $url = ($isSecure ? 'https://' : 'http://') . $host;
+
+        if (!empty($_SERVER['SERVER_PORT']) && !in_array($_SERVER['SERVER_PORT'], [80, 433])
+            && !preg_match('/.*?\:[0-9]+$/', $url)
+        ) {
+            $url .= ':' . $_SERVER['SERVER_PORT'];
+        }
+        return  $url;
     }
 
     /**
@@ -342,7 +301,7 @@ class Processor
     {
         $documentRoot = '';
         if (!empty($_SERVER['DOCUMENT_ROOT'])) {
-            $documentRoot = rtrim(realpath($_SERVER['DOCUMENT_ROOT']), '/');
+            $documentRoot = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
         }
         return dirname($documentRoot . $this->_scriptName) . '/';
     }
@@ -351,8 +310,6 @@ class Processor
      * Prepare config data
      *
      * @return void
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function _prepareConfig()
     {
@@ -368,10 +325,10 @@ class Processor
         $config->skin           = self::DEFAULT_SKIN;
 
         //combine xml data to one object
-        if ($design !== null && (string)$design->skin) {
+        if (!is_null($design) && (string)$design->skin) {
             $this->_setSkin((string)$design->skin, $config);
         }
-        if ($local !== null) {
+        if (!is_null($local)) {
             if ((string)$local->report->action) {
                 $config->action = $local->report->action;
             }
@@ -383,9 +340,6 @@ class Processor
             }
             if ((string)$local->report->trash) {
                 $config->trash = $local->report->trash;
-            }
-            if ($local->report->dir_nesting_level) {
-                $config->dir_nesting_level = (int)$local->report->dir_nesting_level;
             }
             if ((string)$local->skin) {
                 $this->_setSkin((string)$local->skin, $config);
@@ -402,7 +356,7 @@ class Processor
      * Load xml file
      *
      * @param string $xmlFile
-     * @return \SimpleXMLElement
+     * @return SimpleXMLElement
      */
     protected function _loadXml($xmlFile)
     {
@@ -411,8 +365,6 @@ class Processor
     }
 
     /**
-     * Render page
-     *
      * @param string $template
      * @return string
      */
@@ -439,7 +391,7 @@ class Processor
      */
     protected function _getFilePath($file, $directories = null)
     {
-        if ($directories === null) {
+        if (is_null($directories)) {
             $directories[] = $this->_errorDir;
         }
 
@@ -483,7 +435,7 @@ class Processor
             $this->reportData['url'] = $this->getHostUrl() . $reportData['url'];
         }
 
-        if (isset($this->reportData['script_name'])) {
+        if ($this->reportData['script_name']) {
             $this->_scriptName = $this->reportData['script_name'];
         }
     }
@@ -492,168 +444,67 @@ class Processor
      * Create report
      *
      * @param array $reportData
-     * @return string
+     * @return void
      */
-    public function saveReport(array $reportData): string
+    public function saveReport($reportData)
     {
-        $this->reportId = $reportData['report_id'];
-        $this->_reportFile = $this->getReportPath(
-            $this->getReportDirNestingLevel($this->reportId),
-            $this->reportId
-        );
-        $reportDirName = dirname($this->_reportFile);
-        if (!file_exists($reportDirName)) {
-            @mkdir($reportDirName, 0777, true);
-        }
+        $this->reportData = $reportData;
+        $this->reportId   = abs(intval(microtime(true) * rand(100, 1000)));
+        $this->_reportFile = $this->_reportDir . '/' . $this->reportId;
         $this->_setReportData($reportData);
 
-        @file_put_contents($this->_reportFile, $this->serializer->serialize($reportData). PHP_EOL);
+        if (!file_exists($this->_reportDir)) {
+            @mkdir($this->_reportDir, DriverInterface::WRITEABLE_DIRECTORY_MODE, true);
+        }
+
+        @file_put_contents($this->_reportFile, serialize($reportData));
+        @chmod($this->_reportFile, DriverInterface::WRITEABLE_FILE_MODE);
 
         if (isset($reportData['skin']) && self::DEFAULT_SKIN != $reportData['skin']) {
             $this->_setSkin($reportData['skin']);
         }
         $this->_setReportUrl();
 
-        return $this->reportUrl;
+        if (headers_sent()) {
+            echo '<script type="text/javascript">';
+            echo "window.location.href = '{$this->reportUrl}';";
+            echo '</script>';
+            exit;
+        }
     }
 
     /**
      * Get report
      *
-     * @param string $reportId
+     * @param int $reportId
      * @return void
      */
     public function loadReport($reportId)
     {
-        try {
-            if (!$this->isReportIdValid($reportId)) {
-                throw new \RuntimeException("Report Id is invalid");
-            }
-            $reportFile = $this->findReportFile($reportId);
-            if (!is_readable($reportFile)) {
-                throw new \RuntimeException("Report file cannot be read");
-            }
-            $this->reportId = $reportId;
-            $this->_reportFile = $reportFile;
-            $this->_setReportData($this->serializer->unserialize(file_get_contents($this->_reportFile)));
-        } catch (\RuntimeException $e) {
-            $this->redirectToBaseUrl();
+        $this->reportId = $reportId;
+        $this->_reportFile = $this->_reportDir . '/' . $reportId;
+
+        if (!file_exists($this->_reportFile) || !is_readable($this->_reportFile)) {
+            header("Location: " . $this->getBaseUrl());
+            die();
         }
-    }
-
-    /**
-     * Searches for the report file and returns the path to it
-     *
-     * @param string $reportId
-     * @return string
-     * @throws \RuntimeException
-     */
-    private function findReportFile(string $reportId): string
-    {
-        $reportFile = $this->getReportPath(
-            $this->getReportDirNestingLevel($reportId),
-            $reportId
-        );
-        if (file_exists($reportFile)) {
-            return $reportFile;
-        }
-        $maxReportDirNestingLevel = $this->getMaxReportDirNestingLevel($reportId);
-        for ($i = 0; $i <= $maxReportDirNestingLevel; $i++) {
-            $reportFile = $this->getReportPath($i, $reportId);
-            if (file_exists($reportFile)) {
-                return $reportFile;
-            }
-        }
-        throw new \RuntimeException("Report file not found");
-    }
-
-    /**
-     * Redirect to a base url
-     * @return void
-     */
-    private function redirectToBaseUrl()
-    {
-        header("Location: " . $this->getBaseUrl());
-        die();
-    }
-
-    /**
-     * Checks report id
-     *
-     * @param string $reportId
-     * @return bool
-     */
-    private function isReportIdValid(string $reportId): bool
-    {
-        return (bool)preg_match('/[a-fA-F0-9]{64}/', $reportId);
-    }
-
-    /**
-     * Get path to reports
-     *
-     * @param integer $reportDirNestingLevel
-     * @param string $reportId
-     * @return string
-     */
-    private function getReportPath(int $reportDirNestingLevel, string $reportId): string
-    {
-        $reportDirPath = $this->_reportDir;
-        for ($i = 0, $j = 0; $j < $reportDirNestingLevel; $i += 2, $j++) {
-            $reportDirPath .= $reportId[$i] . $reportId[$i + 1] . '/';
-        }
-        return $reportDirPath . $reportId;
-    }
-
-    /**
-     * Returns nesting Level for the report files
-     *
-     * @var $reportId
-     * @return int
-     */
-    private function getReportDirNestingLevel(string $reportId): int
-    {
-        $envName = 'MAGE_ERROR_REPORT_DIR_NESTING_LEVEL';
-        $value = $_ENV[$envName] ?? getenv($envName);
-        if(false === $value && property_exists($this->_config, 'dir_nesting_level')) {
-            $value = $this->_config->dir_nesting_level;
-        }
-        $value = (int)$value;
-        $maxValue= $this->getMaxReportDirNestingLevel($reportId);
-        return 0 < $value && $maxValue >= $value ? $value : 0;
-    }
-
-    /**
-     * Returns maximum nesting level directories of report files
-     *
-     * @param string $reportId
-     * @return integer
-     */
-    private function getMaxReportDirNestingLevel(string $reportId): int
-    {
-        return (int)floor(strlen($reportId) / self::NUMBER_SYMBOLS_IN_SUBDIR_NAME);
+        $this->_setReportData(unserialize(file_get_contents($this->_reportFile)));
     }
 
     /**
      * Send report
      *
      * @return void
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function sendReport()
     {
         $this->pageTitle = 'Error Submission Form';
 
-        $this->postData['firstName'] = (isset($_POST['firstname']))
-            ? trim($this->escaper->escapeHtml($_POST['firstname'])) : '';
-        $this->postData['lastName'] = (isset($_POST['lastname']))
-            ? trim($this->escaper->escapeHtml($_POST['lastname'])) : '';
-        $this->postData['email'] = (isset($_POST['email']))
-            ? trim($this->escaper->escapeHtml($_POST['email'])) : '';
-        $this->postData['telephone'] = (isset($_POST['telephone']))
-            ? trim($this->escaper->escapeHtml($_POST['telephone'])) : '';
-        $this->postData['comment'] = (isset($_POST['comment']))
-            ? trim($this->escaper->escapeHtml($_POST['comment'])) : '';
+        $this->postData['firstName'] = (isset($_POST['firstname'])) ? trim(htmlspecialchars($_POST['firstname'])) : '';
+        $this->postData['lastName']  = (isset($_POST['lastname'])) ? trim(htmlspecialchars($_POST['lastname'])) : '';
+        $this->postData['email']     = (isset($_POST['email'])) ? trim(htmlspecialchars($_POST['email'])) : '';
+        $this->postData['telephone'] = (isset($_POST['telephone'])) ? trim(htmlspecialchars($_POST['telephone'])) : '';
+        $this->postData['comment']   = (isset($_POST['comment'])) ? trim(htmlspecialchars($_POST['comment'])) : '';
 
         if (isset($_POST['submit'])) {
             if ($this->_validate()) {
@@ -718,7 +569,7 @@ class Processor
      */
     protected function _setSkin($value, \stdClass $config = null)
     {
-        if (preg_match('/^[a-z0-9_]+$/i', $value) && is_dir($this->_errorDir . $value)) {
+        if (preg_match('/^[a-z0-9_]+$/i', $value) && is_dir($this->_indexDir . self::ERROR_DIR . '/' . $value)) {
             if (!$config) {
                 if ($this->_config) {
                     $config = $this->_config;

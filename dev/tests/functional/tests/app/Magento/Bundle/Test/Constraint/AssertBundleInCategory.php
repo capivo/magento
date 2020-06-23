@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -39,13 +39,13 @@ class AssertBundleInCategory extends AssertProductInCategory
                 : $priceBlock->getPrice();
         }
 
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $priceData['price_from'],
             $priceLow,
             'Bundle price From on category page is not correct.'
         );
         if ($bundle->getPriceView() == 'Price Range') {
-            \PHPUnit\Framework\Assert::assertEquals(
+            \PHPUnit_Framework_Assert::assertEquals(
                 $priceData['price_to'],
                 $priceBlock->getPriceTo(),
                 'Bundle price To on category page is not correct.'

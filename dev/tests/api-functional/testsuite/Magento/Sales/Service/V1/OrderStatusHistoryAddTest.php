@@ -1,8 +1,10 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
 
 namespace Magento\Sales\Service\V1;
 
@@ -11,7 +13,6 @@ use Magento\TestFramework\TestCase\WebapiAbstract;
 
 /**
  * Class OrderCommentAddTest
- *
  * @package Magento\Sales\Service\V1
  */
 class OrderStatusHistoryAddTest extends WebapiAbstract
@@ -39,18 +40,18 @@ class OrderStatusHistoryAddTest extends WebapiAbstract
     public function testOrderCommentAdd()
     {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $this->objectManager->create(\Magento\Sales\Model\Order::class);
+        $order = $this->objectManager->create('Magento\Sales\Model\Order');
         $order->loadByIncrementId(self::ORDER_INCREMENT_ID);
 
         $commentData = [
             OrderStatusHistoryInterface::COMMENT => 'Hello',
             OrderStatusHistoryInterface::ENTITY_ID => null,
-            OrderStatusHistoryInterface::IS_CUSTOMER_NOTIFIED => 1,
+            OrderStatusHistoryInterface::IS_CUSTOMER_NOTIFIED => true,
             OrderStatusHistoryInterface::CREATED_AT => null,
             OrderStatusHistoryInterface::PARENT_ID => $order->getId(),
             OrderStatusHistoryInterface::ENTITY_NAME => null,
-            OrderStatusHistoryInterface::STATUS => $order->getStatus(),
-            OrderStatusHistoryInterface::IS_VISIBLE_ON_FRONT => 1,
+            OrderStatusHistoryInterface::STATUS => null,
+            OrderStatusHistoryInterface::IS_VISIBLE_ON_FRONT => true,
         ];
 
         $requestData = ['id' => $order->getId(), 'statusHistory' => $commentData];
@@ -70,27 +71,19 @@ class OrderStatusHistoryAddTest extends WebapiAbstract
 
         //Verification
         $comments = $order->load($order->getId())->getAllStatusHistory();
-        $comment = reset($comments);
 
-        $this->assertEquals(
-            $commentData[OrderStatusHistoryInterface::COMMENT],
-            $comment->getComment()
-        );
-        $this->assertEquals(
-            $commentData[OrderStatusHistoryInterface::PARENT_ID],
-            $comment->getParentId()
-        );
-        $this->assertEquals(
-            $commentData[OrderStatusHistoryInterface::IS_CUSTOMER_NOTIFIED],
-            $comment->getIsCustomerNotified()
-        );
-        $this->assertEquals(
-            $commentData[OrderStatusHistoryInterface::IS_VISIBLE_ON_FRONT],
-            $comment->getIsVisibleOnFront()
-        );
-        $this->assertEquals(
-            $commentData[OrderStatusHistoryInterface::STATUS],
-            $comment->getStatus()
-        );
+        $commentData = reset($comments);
+        foreach ($commentData as $key => $value) {
+            $this->assertEquals($commentData[OrderStatusHistoryInterface::COMMENT], $statusHistoryComment->getComment());
+            $this->assertEquals($commentData[OrderStatusHistoryInterface::PARENT_ID], $statusHistoryComment->getParentId());
+            $this->assertEquals(
+                $commentData[OrderStatusHistoryInterface::IS_CUSTOMER_NOTIFIED],
+                $statusHistoryComment->getIsCustomerNotified()
+            );
+            $this->assertEquals(
+                $commentData[OrderStatusHistoryInterface::IS_VISIBLE_ON_FRONT],
+                $statusHistoryComment->getIsVisibleOnFront()
+            );
+        }
     }
 }

@@ -1,16 +1,16 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\GiftMessage\Test\Constraint;
 
 use Magento\GiftMessage\Test\Fixture\GiftMessage;
-use Magento\Mtf\Constraint\AbstractAssertForm;
-use Magento\Mtf\Fixture\FixtureFactory;
 use Magento\Sales\Test\Page\Adminhtml\OrderIndex;
 use Magento\Sales\Test\Page\Adminhtml\SalesOrderView;
+use Magento\Mtf\Constraint\AbstractAssertForm;
+use Magento\Mtf\Fixture\FixtureFactory;
 
 /**
  * Assert that message from dataset is displayed on order(s) view page on backend.
@@ -62,6 +62,7 @@ class AssertGiftMessageInBackendOrder extends AbstractAssertForm
 
             $expectedData[] = $giftMessageForm->getData();
             $actualData[] = $salesOrderView->getGiftOptionsBlock()->getData($giftMessageForm);
+
         }
 
         if ($giftMessage->getAllowGiftOptionsForItems() === 'Yes') {
@@ -74,7 +75,7 @@ class AssertGiftMessageInBackendOrder extends AbstractAssertForm
         }
 
         $errors = $this->verifyData($expectedData, $actualData);
-        \PHPUnit\Framework\Assert::assertEmpty($errors, $errors);
+        \PHPUnit_Framework_Assert::assertEmpty($errors, $errors);
     }
 
     /**

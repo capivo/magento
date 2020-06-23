@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Setup\Test\Unit\Model\Cron;
 
 use Magento\Framework\App\State;
 
-class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
+class JobStaticRegenerateTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Setup\Model\Cron\JobStaticRegenerate
@@ -76,7 +76,7 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
             ->method('getModeObject')
             ->will($this->returnValue($modeObjectMock));
 
-        $statusObject = $this->getStatusObjectMock(['add']);
+        $statusObject = $this->getStatucObjectMock(['add']);
         $statusObject
             ->expects($this->exactly(3))
             ->method('add');
@@ -124,7 +124,7 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
             ->method('getModeObject')
             ->will($this->returnValue($modeObjectMock));
 
-        $statusObject = $this->getStatusObjectMock(['toggleUpdateError']);
+        $statusObject = $this->getStatucObjectMock(['toggleUpdateError']);
         $statusObject
             ->expects($this->once())
             ->method('toggleUpdateError');
@@ -143,7 +143,7 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
      */
     protected function getJobStaticRegenerateMock($methods = null)
     {
-        return $this->createPartialMock(\Magento\Setup\Model\Cron\JobStaticRegenerate::class, $methods);
+        return $this->getMock('Magento\Setup\Model\Cron\JobStaticRegenerate', $methods, [], '', false);
     }
 
     /**
@@ -153,7 +153,7 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
      */
     protected function getFilesystemObjectMock($methods = null)
     {
-        return $this->createPartialMock(\Magento\Deploy\Model\Filesystem::class, $methods);
+        return $this->getMock('Magento\Deploy\Model\Filesystem', $methods, [], '', false);
     }
 
     /**
@@ -161,9 +161,9 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
      *
      * @return \PHPUnit_Framework_MockObject_MockObject|\Magento\Setup\Model\Cron\Status
      */
-    protected function getStatusObjectMock($methods = null)
+    protected function getStatucObjectMock($methods = null)
     {
-        return $this->createPartialMock(\Magento\Setup\Model\Cron\Status::class, $methods);
+        return $this->getMock('Magento\Setup\Model\Cron\Status', $methods, [], '', false);
     }
 
     /**
@@ -173,7 +173,7 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
      */
     protected function getCleanFilesObjectMock($methods = null)
     {
-        return $this->createPartialMock(\Magento\Framework\App\State\CleanupFiles::class, $methods);
+        return $this->getMock('Magento\Framework\App\State\CleanupFiles', $methods, [], '', false);
     }
 
     /**
@@ -183,7 +183,7 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
      */
     protected function getCacheObjectMock($methods = null)
     {
-        return $this->createPartialMock(\Magento\Framework\App\State\CleanupFiles::class, $methods);
+        return $this->getMock('Magento\Framework\App\State\CleanupFiles', $methods, [], '', false);
     }
 
     /**
@@ -193,7 +193,7 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
      */
     protected function getOutputObjectMock()
     {
-        return $this->getMockForAbstractClass(\Symfony\Component\Console\Output\OutputInterface::class);
+        return $this->getMockForAbstractClass('Symfony\Component\Console\Output\OutputInterface');
     }
 
     /**
@@ -203,6 +203,6 @@ class JobStaticRegenerateTest extends \PHPUnit\Framework\TestCase
      */
     protected function getModeObjectMock($methods = null)
     {
-        return $this->createPartialMock(\Magento\Deploy\Model\Mode::class, $methods);
+        return $this->getMock('Magento\Deploy\Model\Mode', $methods, [], '', false);
     }
 }

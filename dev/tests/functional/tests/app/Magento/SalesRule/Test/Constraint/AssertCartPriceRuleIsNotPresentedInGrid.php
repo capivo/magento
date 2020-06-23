@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -24,7 +24,7 @@ class AssertCartPriceRuleIsNotPresentedInGrid extends AbstractConstraint
      */
     public function processAssert(PromoQuoteIndex $promoQuoteIndex, SalesRule $salesRule)
     {
-        \PHPUnit\Framework\Assert::assertFalse(
+        \PHPUnit_Framework_Assert::assertFalse(
             $promoQuoteIndex->getPromoQuoteGrid()->isRowVisible(['name' => $salesRule->getName()]),
             'Sales rule \'' . $salesRule->getName() . '\' is present in cart price rules grid.'
         );

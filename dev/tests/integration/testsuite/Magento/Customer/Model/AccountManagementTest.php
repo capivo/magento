@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -14,8 +14,6 @@ use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\State\ExpiredException;
 use Magento\Framework\Reflection\DataObjectProcessor;
-use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 
 /**
@@ -26,7 +24,7 @@ use Magento\TestFramework\Helper\Bootstrap;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @magentoAppArea frontend
  */
-class AccountManagementTest extends \PHPUnit\Framework\TestCase
+class AccountManagementTest extends \PHPUnit_Framework_TestCase
 {
     /** @var AccountManagementInterface */
     private $accountManagement;
@@ -55,9 +53,6 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     /** @var \Magento\Framework\Api\ExtensibleDataObjectConverter */
     private $extensibleDataObjectConverter;
 
-    /** @var StoreManagerInterface */
-    private $storeManager;
-
     /** @var  \Magento\Framework\Api\DataObjectHelper */
     protected $dataObjectHelper;
 
@@ -65,19 +60,17 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $this->accountManagement = $this->objectManager
-            ->create(\Magento\Customer\Api\AccountManagementInterface::class);
+            ->create('Magento\Customer\Api\AccountManagementInterface');
         $this->customerRepository = $this->objectManager
-            ->create(\Magento\Customer\Api\CustomerRepositoryInterface::class);
+            ->create('Magento\Customer\Api\CustomerRepositoryInterface');
         $this->addressRepository =
-            $this->objectManager->create(\Magento\Customer\Api\AddressRepositoryInterface::class);
+            $this->objectManager->create('Magento\Customer\Api\AddressRepositoryInterface');
 
-        $this->addressFactory = $this->objectManager->create(\Magento\Customer\Api\Data\AddressInterfaceFactory::class);
-        $this->customerFactory = $this->objectManager->create(
-            \Magento\Customer\Api\Data\CustomerInterfaceFactory::class
-        );
-        $this->dataObjectHelper = $this->objectManager->create(\Magento\Framework\Api\DataObjectHelper::class);
+        $this->addressFactory = $this->objectManager->create('Magento\Customer\Api\Data\AddressInterfaceFactory');
+        $this->customerFactory = $this->objectManager->create('Magento\Customer\Api\Data\CustomerInterfaceFactory');
+        $this->dataObjectHelper = $this->objectManager->create('Magento\Framework\Api\DataObjectHelper');
 
-        $regionFactory = $this->objectManager->create(\Magento\Customer\Api\Data\RegionInterfaceFactory::class);
+        $regionFactory = $this->objectManager->create('Magento\Customer\Api\Data\RegionInterfaceFactory');
         $address = $this->addressFactory->create();
         $address->setId('1')
             ->setCountryId('US')
@@ -115,13 +108,10 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
         $this->_expectedAddresses = [$address, $address2];
 
         $this->dataProcessor = $this->objectManager
-            ->create(\Magento\Framework\Reflection\DataObjectProcessor::class);
+            ->create('Magento\Framework\Reflection\DataObjectProcessor');
 
         $this->extensibleDataObjectConverter = $this->objectManager
-            ->create(\Magento\Framework\Api\ExtensibleDataObjectConverter::class);
-
-        $this->storeManager = $this->objectManager
-            ->create(StoreManagerInterface::class);
+            ->create('Magento\Framework\Api\ExtensibleDataObjectConverter');
     }
 
     /**
@@ -130,9 +120,9 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     protected function tearDown()
     {
         /** @var \Magento\Customer\Model\CustomerRegistry $customerRegistry */
-        $customerRegistry = $this->objectManager->get(\Magento\Customer\Model\CustomerRegistry::class);
+        $customerRegistry = $this->objectManager->get('Magento\Customer\Model\CustomerRegistry');
         /** @var \Magento\Customer\Model\CustomerRegistry $addressRegistry */
-        $addressRegistry = $this->objectManager->get(\Magento\Customer\Model\AddressRegistry::class);
+        $addressRegistry = $this->objectManager->get('Magento\Customer\Model\AddressRegistry');
         //Cleanup customer from registry
         $customerRegistry->remove(1);
         $addressRegistry->remove(1);
@@ -155,6 +145,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      * @magentoDataFixture Magento/Customer/_files/customer.php
      *
      * @expectedException \Magento\Framework\Exception\InvalidEmailOrPasswordException
+     * @expectedExceptionMessage Invalid login or password.
      */
     public function testLoginWrongPassword()
     {
@@ -169,7 +160,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testLoginWrongUsername()
     {
         // Customer email and password are pulled from the fixture customer.php
-        $this->accountManagement->authenticate('non_existing_user', '_Password123');
+        $this->accountManagement->authenticate('non_existing_user', 'password');
     }
 
     /**
@@ -178,34 +169,20 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      */
     public function testChangePassword()
     {
-        /** @var SessionManagerInterface $session */
-        $session = $this->objectManager->get(SessionManagerInterface::class);
-        $oldSessionId = $session->getSessionId();
-        $session->setTestData('test');
-        $this->accountManagement->changePassword('customer@example.com', 'password', 'new_Password123');
+        $this->accountManagement->changePassword('customer@example.com', 'password', 'new_password');
 
-        $this->assertTrue(
-            $oldSessionId !== $session->getSessionId(),
-            'Customer session id wasn\'t regenerated after change password'
-        );
-
-        $session->destroy();
-        $session->setSessionId($oldSessionId);
-
-        $this->assertNull($session->getTestData(), 'Customer session data wasn\'t cleaned');
-
-        $this->accountManagement->authenticate('customer@example.com', 'new_Password123');
+        $this->accountManagement->authenticate('customer@example.com', 'new_password');
     }
 
     /**
      * @magentoDataFixture Magento/Customer/_files/customer.php
      *
      * @expectedException \Magento\Framework\Exception\InvalidEmailOrPasswordException
-     * @expectedExceptionMessage The password doesn't match this account. Verify the password and try again.
+     * @expectedExceptionMessage The password doesn't match this account.
      */
     public function testChangePasswordWrongPassword()
     {
-        $this->accountManagement->changePassword('customer@example.com', 'wrongPassword', 'new_Password123');
+        $this->accountManagement->changePassword('customer@example.com', 'wrongPassword', 'new_password');
     }
 
     /**
@@ -214,7 +191,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      */
     public function testChangePasswordWrongUser()
     {
-        $this->accountManagement->changePassword('wrong.email@example.com', '_Password123', 'new_Password123');
+        $this->accountManagement->changePassword('wrong.email@example.com', 'password', 'new_password');
     }
 
     /**
@@ -224,14 +201,14 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testActivateAccount()
     {
         /** @var \Magento\Customer\Model\Customer $customerModel */
-        $customerModel = $this->objectManager->create(\Magento\Customer\Model\Customer::class);
+        $customerModel = $this->objectManager->create('Magento\Customer\Model\Customer');
         $customerModel->load(1);
         // Assert in just one test that the fixture is working
         $this->assertNotNull($customerModel->getConfirmation(), 'New customer needs to be confirmed');
 
         $this->accountManagement->activate($customerModel->getEmail(), $customerModel->getConfirmation());
 
-        $customerModel = $this->objectManager->create(\Magento\Customer\Model\Customer::class);
+        $customerModel = $this->objectManager->create('Magento\Customer\Model\Customer');
         $customerModel->load(1);
         $this->assertNull($customerModel->getConfirmation(), 'Customer should be considered confirmed now');
     }
@@ -243,7 +220,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testActivateCustomerConfirmationKeyWrongKey()
     {
         /** @var \Magento\Customer\Model\Customer $customerModel */
-        $customerModel = $this->objectManager->create(\Magento\Customer\Model\Customer::class);
+        $customerModel = $this->objectManager->create('Magento\Customer\Model\Customer');
         $customerModel->load(1);
         $key = $customerModel->getConfirmation();
 
@@ -261,7 +238,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testActivateCustomerWrongAccount()
     {
         /** @var \Magento\Customer\Model\Customer $customerModel */
-        $customerModel = $this->objectManager->create(\Magento\Customer\Model\Customer::class);
+        $customerModel = $this->objectManager->create('Magento\Customer\Model\Customer');
         $customerModel->load(1);
         $key = $customerModel->getConfirmation();
         try {
@@ -283,7 +260,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testActivateCustomerAlreadyActive()
     {
         /** @var \Magento\Customer\Model\Customer $customerModel */
-        $customerModel = $this->objectManager->create(\Magento\Customer\Model\Customer::class);
+        $customerModel = $this->objectManager->create('Magento\Customer\Model\Customer');
         $customerModel->load(1);
         $key = $customerModel->getConfirmation();
         $this->accountManagement->activate($customerModel->getEmail(), $key);
@@ -296,7 +273,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateResetPasswordLinkToken()
     {
-        $this->setResetPasswordData('token', 'Y-m-d H:i:s');
+        $this->setResetPasswordData('token', 'Y-m-d');
         $this->accountManagement->validateResetPasswordLinkToken(1, 'token');
     }
 
@@ -318,14 +295,14 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     {
         $resetToken = 'lsdj579slkj5987slkj595lkj';
         $invalidToken = 0;
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i:s');
+        $this->setResetPasswordData($resetToken, 'Y-m-d');
         try {
             $this->accountManagement->validateResetPasswordLinkToken(1, $invalidToken);
             $this->fail('Expected exception not thrown.');
         } catch (InputException $ie) {
-            $this->assertEquals('"%fieldName" is required. Enter and try again.', $ie->getRawMessage());
-            $this->assertEquals('"resetPasswordLinkToken" is required. Enter and try again.', $ie->getMessage());
-            $this->assertEquals('"resetPasswordLinkToken" is required. Enter and try again.', $ie->getLogMessage());
+            $this->assertEquals(InputException::REQUIRED_FIELD, $ie->getRawMessage());
+            $this->assertEquals('resetPasswordLinkToken is a required field.', $ie->getMessage());
+            $this->assertEquals('resetPasswordLinkToken is a required field.', $ie->getLogMessage());
             $this->assertEmpty($ie->getErrors());
         }
     }
@@ -347,22 +324,6 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Test for resetPassword() method when reset for the second time
-     *
-     * @magentoDataFixture Magento/Customer/_files/customer.php
-     * @expectedException \Magento\Framework\Exception\State\InputMismatchException
-     */
-    public function testResetPasswordTokenSecondTime()
-    {
-        $resetToken = 'lsdj579slkj5987slkj595lkj';
-        $password = 'new_Password123';
-        $email = 'customer@example.com';
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i');
-        $this->assertTrue($this->accountManagement->resetPassword($email, $resetToken, $password));
-        $this->accountManagement->resetPassword($email, $resetToken, $password);
-    }
-
-    /**
      * @magentoDataFixture Magento/Customer/_files/customer.php
      *
      */
@@ -372,34 +333,11 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
             $this->accountManagement->validateResetPasswordLinkToken(1, null);
             $this->fail('Expected exception not thrown.');
         } catch (InputException $ie) {
-            $this->assertEquals('"%fieldName" is required. Enter and try again.', $ie->getRawMessage());
-            $this->assertEquals('"resetPasswordLinkToken" is required. Enter and try again.', $ie->getMessage());
-            $this->assertEquals('"resetPasswordLinkToken" is required. Enter and try again.', $ie->getLogMessage());
+            $this->assertEquals(InputException::REQUIRED_FIELD, $ie->getRawMessage());
+            $this->assertEquals('resetPasswordLinkToken is a required field.', $ie->getMessage());
+            $this->assertEquals('resetPasswordLinkToken is a required field.', $ie->getLogMessage());
             $this->assertEmpty($ie->getErrors());
         }
-    }
-
-    /**
-     * @magentoDataFixture Magento/Customer/_files/customer.php
-     */
-    public function testValidateResetPasswordLinkTokenWithoutId()
-    {
-        $token = 'randomStr123';
-        $this->setResetPasswordData($token, 'Y-m-d H:i:s');
-        $this->assertTrue(
-            $this->accountManagement->validateResetPasswordLinkToken(null, $token)
-        );
-    }
-    /**
-     * @magentoDataFixture Magento/Customer/_files/two_customers.php
-     * @expectedException \Magento\Framework\Exception\State\ExpiredException
-     */
-    public function testValidateResetPasswordLinkTokenAmbiguous()
-    {
-        $token = 'randomStr123';
-        $this->setResetPasswordData($token, 'Y-m-d H:i:s', 1);
-        $this->setResetPasswordData($token, 'Y-m-d H:i:s', 2);
-        $this->accountManagement->validateResetPasswordLinkToken(null, $token);
     }
 
     /**
@@ -475,9 +413,9 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testResetPassword()
     {
         $resetToken = 'lsdj579slkj5987slkj595lkj';
-        $password = 'new_Password123';
+        $password = 'new_password';
 
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i:s');
+        $this->setResetPasswordData($resetToken, 'Y-m-d');
         $this->assertTrue($this->accountManagement->resetPassword('customer@example.com', $resetToken, $password));
     }
 
@@ -487,14 +425,14 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testResetPasswordTokenExpired()
     {
         $resetToken = 'lsdj579slkj5987slkj595lkj';
-        $password = 'new_Password123';
+        $password = 'new_password';
 
         $this->setResetPasswordData($resetToken, '1970-01-01');
         try {
             $this->accountManagement->resetPassword('customer@example.com', $resetToken, $password);
             $this->fail('Expected exception not thrown.');
         } catch (ExpiredException $e) {
-            $this->assertEquals('The password token is expired. Reset and try again.', $e->getMessage());
+            $this->assertEquals('Reset password token expired.', $e->getMessage());
         }
     }
 
@@ -506,16 +444,16 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     {
         $resetToken = 'lsdj579slkj5987slkj595lkj';
         $invalidToken = 0;
-        $password = 'new_Password123';
+        $password = 'new_password';
 
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i:s');
+        $this->setResetPasswordData($resetToken, 'Y-m-d');
         try {
             $this->accountManagement->resetPassword('customer@example.com', $invalidToken, $password);
             $this->fail('Expected exception not thrown.');
         } catch (InputException $ie) {
-            $this->assertEquals('"%fieldName" is required. Enter and try again.', $ie->getRawMessage());
-            $this->assertEquals('"resetPasswordLinkToken" is required. Enter and try again.', $ie->getMessage());
-            $this->assertEquals('"resetPasswordLinkToken" is required. Enter and try again.', $ie->getLogMessage());
+            $this->assertEquals(InputException::REQUIRED_FIELD, $ie->getRawMessage());
+            $this->assertEquals('resetPasswordLinkToken is a required field.', $ie->getMessage());
+            $this->assertEquals('resetPasswordLinkToken is a required field.', $ie->getLogMessage());
             $this->assertEmpty($ie->getErrors());
         }
     }
@@ -526,8 +464,8 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testResetPasswordTokenWrongUser()
     {
         $resetToken = 'lsdj579slkj5987slkj595lkj';
-        $password = 'new_Password123';
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i:s');
+        $password = 'new_password';
+        $this->setResetPasswordData($resetToken, 'Y-m-d');
         try {
             $this->accountManagement->resetPassword('invalid-customer@example.com', $resetToken, $password);
             $this->fail('Expected exception not thrown.');
@@ -545,9 +483,9 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testResetPasswordTokenInvalidUserEmail()
     {
         $resetToken = 'lsdj579slkj5987slkj595lkj';
-        $password = 'new_Password123';
+        $password = 'new_password';
 
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i:s');
+        $this->setResetPasswordData($resetToken, 'Y-m-d');
 
         try {
             $this->accountManagement->resetPassword('invalid', $resetToken, $password);
@@ -555,31 +493,6 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
         } catch (NoSuchEntityException $e) {
             $this->assertEquals('No such entity with email = invalid, websiteId = 1', $e->getMessage());
         }
-    }
-
-    /**
-     * @magentoDataFixture Magento/Customer/_files/customer.php
-     */
-    public function testResetPasswordWithoutEmail()
-    {
-        $resetToken = 'lsdj579slkj5987slkj595lkj';
-        $password = 'new_Password123';
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i:s');
-        $this->assertTrue(
-            $this->accountManagement->resetPassword(null, $resetToken, $password)
-        );
-    }
-    /**
-     * @magentoDataFixture Magento/Customer/_files/two_customers.php
-     * @expectedException \Magento\Framework\Exception\State\ExpiredException
-     */
-    public function testResetPasswordAmbiguousToken()
-    {
-        $resetToken = 'lsdj579slkj5987slkj595lkj';
-        $password = 'new_Password123';
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i:s', 1);
-        $this->setResetPasswordData($resetToken, 'Y-m-d H:i:s', 2);
-        $this->accountManagement->resetPassword(null, $resetToken, $password);
     }
 
     /**
@@ -646,7 +559,12 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
             $this->accountManagement->createAccount($customerEntity);
             $this->fail('Expected exception not thrown');
         } catch (InputException $ie) {
-            $this->assertEquals('The customer email is missing. Enter and try again.', $ie->getMessage());
+            $this->assertEquals(InputException::DEFAULT_MESSAGE, $ie->getMessage());
+            $errors = $ie->getErrors();
+            $this->assertCount(3, $errors);
+            $this->assertEquals('firstname is a required field.', $errors[0]->getLogMessage());
+            $this->assertEquals('lastname is a required field.', $errors[1]->getLogMessage());
+            $this->assertEquals('Invalid value of "" provided for the email field.', $errors[2]->getLogMessage());
         }
     }
 
@@ -676,27 +594,27 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
         $this->dataObjectHelper->populateWithArray(
             $customerEntity,
             $customerData,
-            \Magento\Customer\Api\Data\CustomerInterface::class
+            '\Magento\Customer\Api\Data\CustomerInterface'
         );
 
-        $customerAfter = $this->accountManagement->createAccount($customerEntity, '_aPassword1');
+        $customerAfter = $this->accountManagement->createAccount($customerEntity, 'aPassword');
         $this->assertGreaterThan(0, $customerAfter->getId());
         $this->assertEquals($email, $customerAfter->getEmail());
         $this->assertEquals($firstName, $customerAfter->getFirstname());
         $this->assertEquals($lastName, $customerAfter->getLastname());
         $this->accountManagement->authenticate(
             $customerAfter->getEmail(),
-            '_aPassword1'
+            'aPassword'
         );
         $attributesBefore = $this->extensibleDataObjectConverter->toFlatArray(
             $existingCustomer,
             [],
-            \Magento\Customer\Api\Data\CustomerInterface::class
+            '\Magento\Customer\Api\Data\CustomerInterface'
         );
         $attributesAfter = $this->extensibleDataObjectConverter->toFlatArray(
             $customerAfter,
             [],
-            \Magento\Customer\Api\Data\CustomerInterface::class
+            '\Magento\Customer\Api\Data\CustomerInterface'
         );
         // ignore 'updated_at'
         unset($attributesBefore['updated_at']);
@@ -720,10 +638,10 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
             'id',
             'lastname',
         ];
+        sort($expectedInAfter);
         $actualInAfterOnly = array_keys($inAfterOnly);
-        foreach ($expectedInAfter as $item) {
-            $this->assertContains($item, $actualInAfterOnly);
-        }
+        sort($actualInAfterOnly);
+        $this->assertEquals($expectedInAfter, $actualInAfterOnly);
     }
 
     /**
@@ -736,10 +654,10 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
         $firstname = 'Tester';
         $lastname = 'McTest';
         $groupId = 1;
-        $password = '_aPassword1';
+        $password = 'aPassword';
 
         /** @var \Magento\Customer\Model\Customer $customerModel */
-        $customerModel = $this->objectManager->create(\Magento\Customer\Model\CustomerFactory::class)->create();
+        $customerModel = $this->objectManager->create('Magento\Customer\Model\CustomerFactory')->create();
         $customerModel->setEmail($email)
             ->setFirstname($firstname)
             ->setLastname($lastname)
@@ -748,7 +666,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
         $customerModel->save();
         /** @var \Magento\Customer\Model\Customer $customerModel */
         $savedModel = $this->objectManager
-            ->create(\Magento\Customer\Model\CustomerFactory::class)
+            ->create('Magento\Customer\Model\CustomerFactory')
             ->create()
             ->load($customerModel->getId());
         $dataInModel = $savedModel->getData();
@@ -764,11 +682,11 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Magento\Framework\Api\SimpleDataObjectConverter $simpleDataObjectConverter */
         $simpleDataObjectConverter = Bootstrap::getObjectManager()
-            ->get(\Magento\Framework\Api\SimpleDataObjectConverter::class);
+            ->get('Magento\Framework\Api\SimpleDataObjectConverter');
 
         $dataInService = $simpleDataObjectConverter->toFlatArray(
             $savedCustomer,
-            \Magento\Customer\Api\Data\CustomerInterface::class
+            'Magento\Customer\Api\Data\CustomerInterface'
         );
         $expectedDifferences = [
             'created_at',
@@ -789,9 +707,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
                 if ($value === null) {
                     $this->assertArrayNotHasKey($key, $dataInService);
                 } else {
-                    if (isset($dataInService[$key])) {
-                        $this->assertEquals($value, $dataInService[$key], 'Failed asserting value for ' . $key);
-                    }
+                    $this->assertEquals($value, $dataInService[$key], 'Failed asserting value for ' . $key);
                 }
             }
         }
@@ -817,7 +733,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
             ->setFirstname($firstname)
             ->setLastname($lastname)
             ->setGroupId($groupId);
-        $savedCustomer = $this->accountManagement->createAccount($newCustomerEntity, '_aPassword1');
+        $savedCustomer = $this->accountManagement->createAccount($newCustomerEntity, 'aPassword');
         $this->assertNotNull($savedCustomer->getId());
         $this->assertEquals($email, $savedCustomer->getEmail());
         $this->assertEquals($storeId, $savedCustomer->getStoreId());
@@ -845,9 +761,11 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
             ->setLastname($lastname)
             ->setGroupId($groupId);
         /** @var \Magento\Framework\Math\Random $mathRandom */
-        $password = $this->objectManager->get(\Magento\Framework\Math\Random::class)->getRandomString(8);
+        $password = $this->objectManager->get('Magento\Framework\Math\Random')->getRandomString(
+            AccountManagement::MIN_PASSWORD_LENGTH
+        );
         /** @var \Magento\Framework\Encryption\EncryptorInterface $encryptor */
-        $encryptor = $this->objectManager->get(\Magento\Framework\Encryption\EncryptorInterface::class);
+        $encryptor = $this->objectManager->get('Magento\Framework\Encryption\EncryptorInterface');
         $passwordHash = $encryptor->getHash($password, true);
         $savedCustomer = $this->accountManagement->createAccountWithPasswordHash(
             $newCustomerEntity,
@@ -867,44 +785,6 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Customer has two addresses one of it is allowed in website and second is not
-     *
-     * @magentoDataFixture Magento/Customer/_files/customer.php
-     * @magentoDataFixture Magento/Customer/_files/customer_two_addresses.php
-     * @magentoDataFixture Magento/Store/_files/websites_different_countries.php
-     * @magentoConfigFixture fixture_second_store_store general/country/allow UA
-     * @return void
-     */
-    public function testCreateNewCustomerWithPasswordHashWithNotAllowedCountry()
-    {
-        $customerId = 1;
-        $allowedCountryIdForSecondWebsite = 'UA';
-        $store = $this->storeManager->getStore('fixture_second_store');
-        $customerData = $this->customerRepository->getById($customerId);
-        $customerData->getAddresses()[1]->setRegion(null)->setCountryId($allowedCountryIdForSecondWebsite)
-            ->setRegionId(null);
-        $customerData->setStoreId($store->getId())->setWebsiteId($store->getWebsiteId())->setId(null);
-        $encryptor = $this->objectManager->get(\Magento\Framework\Encryption\EncryptorInterface::class);
-        /** @var \Magento\Framework\Math\Random $mathRandom */
-        $password = $this->objectManager->get(\Magento\Framework\Math\Random::class)->getRandomString(8);
-        $passwordHash = $encryptor->getHash($password, true);
-        $savedCustomer = $this->accountManagement->createAccountWithPasswordHash(
-            $customerData,
-            $passwordHash
-        );
-        $this->assertCount(
-            1,
-            $savedCustomer->getAddresses(),
-            'The wrong address quantity was saved'
-        );
-        $this->assertSame(
-            'UA',
-            $savedCustomer->getAddresses()[0]->getCountryId(),
-            'The address with the disallowed country was saved'
-        );
-    }
-
-    /**
      * @magentoAppArea frontend
      * @magentoDataFixture Magento/Customer/_files/customer.php
      */
@@ -918,7 +798,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
         $existingCustomer = $this->customerRepository->getById($existingCustId);
         $customerEntity = $this->customerFactory->create();
         $this->dataObjectHelper->mergeDataObjects(
-            \Magento\Customer\Api\Data\CustomerInterface::class,
+            '\Magento\Customer\Api\Data\CustomerInterface',
             $customerEntity,
             $existingCustomer
         );
@@ -927,14 +807,14 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
             ->setLastname($lastname)
             ->setId(null);
 
-        $customer = $this->accountManagement->createAccount($customerEntity, '_aPassword1');
+        $customer = $this->accountManagement->createAccount($customerEntity, 'aPassword');
         $this->assertNotEmpty($customer->getId());
         $this->assertEquals($email, $customer->getEmail());
         $this->assertEquals($firstName, $customer->getFirstname());
         $this->assertEquals($lastname, $customer->getLastname());
         $this->accountManagement->authenticate(
             $customer->getEmail(),
-            '_aPassword1',
+            'aPassword',
             true
         );
     }
@@ -980,12 +860,9 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
 
         $expected = $this->dataProcessor->buildOutputDataArray(
             $this->_expectedAddresses[0],
-            \Magento\Customer\Api\Data\AddressInterface::class
+            'Magento\Customer\Api\Data\AddressInterface'
         );
-        $result = $this->dataProcessor->buildOutputDataArray(
-            $address,
-            \Magento\Customer\Api\Data\AddressInterface::class
-        );
+        $result = $this->dataProcessor->buildOutputDataArray($address, 'Magento\Customer\Api\Data\AddressInterface');
         /*
          * TODO : Data builder / populateWithArray currently does not detect
          * array type and returns street as string instead of array. Need to fix this.
@@ -1001,6 +878,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
     public function testSaveNewAddressDefaults()
     {
         $customerId = 1;
+
         /** @var $addressShipping \Magento\Customer\Api\Data\AddressInterface */
         $addressShipping = $this->_expectedAddresses[0]->setId(null);
         $addressShipping->setIsDefaultShipping(true)->setIsDefaultBilling(false)->setCustomerId($customerId);
@@ -1015,9 +893,7 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
 
         $addressShippingExpected = $this->addressRepository->save($addressShipping);
         $addressBillingExpected = $this->addressRepository->save($addressBilling);
-        /** @var \Magento\Customer\Model\CustomerRegistry $customerRegistry */
-        $customerRegistry = $this->objectManager->get(\Magento\Customer\Model\CustomerRegistry::class);
-        $customerRegistry->remove(1);
+
         // Call api under test
         $shippingResponse = $this->accountManagement->getDefaultShippingAddress($customerId);
         $billingResponse = $this->accountManagement->getDefaultBillingAddress($customerId);
@@ -1026,11 +902,11 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
         // \Magento\Customer\Api\AccountManagementInterface::getDefaultShippingAddress
         $addressShippingExpected = $this->dataProcessor->buildOutputDataArray(
             $addressShippingExpected,
-            \Magento\Customer\Api\Data\AddressInterface::class
+            'Magento\Customer\Api\Data\AddressInterface'
         );
         $shippingResponse = $this->dataProcessor->buildOutputDataArray(
             $shippingResponse,
-            \Magento\Customer\Api\Data\AddressInterface::class
+            'Magento\Customer\Api\Data\AddressInterface'
         );
 
         // Response should have this set since we save as default shipping
@@ -1041,11 +917,11 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
         // \Magento\Customer\Api\AccountManagementInterface::getDefaultShippingAddress
         $addressBillingExpected = $this->dataProcessor->buildOutputDataArray(
             $addressBillingExpected,
-            \Magento\Customer\Api\Data\AddressInterface::class
+            'Magento\Customer\Api\Data\AddressInterface'
         );
         $billingResponse = $this->dataProcessor->buildOutputDataArray(
             $billingResponse,
-            \Magento\Customer\Api\Data\AddressInterface::class
+            'Magento\Customer\Api\Data\AddressInterface'
         );
 
         // Response should have this set since we save as default billing
@@ -1068,16 +944,12 @@ class AccountManagementTest extends \PHPUnit\Framework\TestCase
      *
      * @param $resetToken
      * @param $date
-     * @param int $customerIdFromFixture Which customer to use.
-     * @throws \Exception
      */
-    protected function setResetPasswordData(
-        $resetToken,
-        $date,
-        int $customerIdFromFixture = 1
-    ) {
+    protected function setResetPasswordData($resetToken, $date)
+    {
+        $customerIdFromFixture = 1;
         /** @var \Magento\Customer\Model\Customer $customerModel */
-        $customerModel = $this->objectManager->create(\Magento\Customer\Model\Customer::class);
+        $customerModel = $this->objectManager->create('Magento\Customer\Model\Customer');
         $customerModel->load($customerIdFromFixture);
         $customerModel->setRpToken($resetToken);
         $customerModel->setRpTokenCreatedAt(date($date));

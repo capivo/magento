@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -33,14 +33,14 @@ class AssertProductsIsAbsentInWishlist extends AbstractConstraint
         Customer $customer
     ) {
         $this->objectManager->create(
-            \Magento\Customer\Test\TestStep\LoginCustomerOnFrontendStep::class,
+            'Magento\Customer\Test\TestStep\LoginCustomerOnFrontendStep',
             ['customer' => $customer]
         )->run();
         $customerAccountIndex->open()->getAccountMenuBlock()->openMenuItem("My Wish List");
         $itemBlock = $wishlistIndex->getWishlistBlock()->getProductItemsBlock();
 
         foreach ($products as $itemProduct) {
-            \PHPUnit\Framework\Assert::assertFalse(
+            \PHPUnit_Framework_Assert::assertFalse(
                 $itemBlock->getItemProduct($itemProduct)->isVisible(),
                 'Product \'' . $itemProduct->getName() . '\' is present in Wish List on Frontend.'
             );

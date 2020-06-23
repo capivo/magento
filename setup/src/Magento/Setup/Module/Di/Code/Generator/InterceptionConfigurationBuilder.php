@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,7 +12,6 @@ use Magento\Framework\App\Cache\Manager;
 use Magento\Framework\App\Interception\Cache\CompiledConfig;
 use Magento\Framework\Interception\Config\Config as InterceptionConfig;
 use Magento\Setup\Module\Di\Code\Reader\Type;
-use Magento\Framework\ObjectManager\InterceptableValidator;
 
 class InterceptionConfigurationBuilder
 {
@@ -44,29 +43,21 @@ class InterceptionConfigurationBuilder
     private $cacheManager;
 
     /**
-     * @var InterceptableValidator
-     */
-    private $interceptableValidator;
-
-    /**
      * @param InterceptionConfig $interceptionConfig
      * @param PluginList $pluginList
      * @param Type $typeReader
      * @param Manager $cacheManager
-     * @param InterceptableValidator $interceptableValidator
      */
     public function __construct(
         InterceptionConfig $interceptionConfig,
         PluginList $pluginList,
         Type $typeReader,
-        Manager $cacheManager,
-        InterceptableValidator $interceptableValidator
+        Manager $cacheManager
     ) {
         $this->interceptionConfig = $interceptionConfig;
         $this->pluginList = $pluginList;
         $this->typeReader = $typeReader;
         $this->cacheManager = $cacheManager;
-        $this->interceptableValidator = $interceptableValidator;
     }
 
     /**
@@ -108,9 +99,7 @@ class InterceptionConfigurationBuilder
     {
         $intercepted = [];
         foreach ($definedClasses as $definedClass) {
-            if ($this->interceptionConfig->hasPlugins($definedClass) && $this->typeReader->isConcrete($definedClass)
-                && $this->interceptableValidator->validate($definedClass)
-            ) {
+            if ($this->interceptionConfig->hasPlugins($definedClass) && $this->typeReader->isConcrete($definedClass)) {
                 $intercepted[] = $definedClass;
             }
         }

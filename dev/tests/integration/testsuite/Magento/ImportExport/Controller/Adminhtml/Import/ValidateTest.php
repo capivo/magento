@@ -1,15 +1,11 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\ImportExport\Controller\Adminhtml\Import;
 
 use Magento\Framework\Filesystem\DirectoryList;
-use Magento\Framework\HTTP\Adapter\FileTransferFactory;
-use Magento\ImportExport\Model\Import;
-use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorInterface;
 
 /**
  * @magentoAppArea adminhtml
@@ -17,45 +13,37 @@ use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorI
 class ValidateTest extends \Magento\TestFramework\TestCase\AbstractBackendController
 {
     /**
-     * @dataProvider validationDataProvider
-     * @param string $fileName
-     * @param string $mimeType
-     * @param string $message
-     * @param string $delimiter
-     * @throws \Magento\Framework\Exception\FileSystemException
      * @backupGlobals enabled
      * @magentoDbIsolation enabled
-     * @SuppressWarnings(PHPMD.Superglobals)
      */
-    public function testValidationReturn(string $fileName, string $mimeType, string $message, string $delimiter): void
+    public function testFieldStateAfterValidation()
     {
-        $validationStrategy = ProcessingErrorAggregatorInterface::VALIDATION_STRATEGY_STOP_ON_ERROR;
-
         $this->getRequest()->setParam('isAjax', true);
         $this->getRequest()->setMethod('POST');
         $_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';
 
         /** @var $formKey \Magento\Framework\Data\Form\FormKey */
-        $formKey = $this->_objectManager->get(\Magento\Framework\Data\Form\FormKey::class);
+        $formKey = $this->_objectManager->get('Magento\Framework\Data\Form\FormKey');
         $this->getRequest()->setPostValue('form_key', $formKey->getFormKey());
         $this->getRequest()->setPostValue('entity', 'catalog_product');
         $this->getRequest()->setPostValue('behavior', 'append');
-        $this->getRequest()->setPostValue(Import::FIELD_NAME_VALIDATION_STRATEGY, $validationStrategy);
-        $this->getRequest()->setPostValue(Import::FIELD_NAME_ALLOWED_ERROR_COUNT, 0);
-        $this->getRequest()->setPostValue('_import_field_separator', $delimiter);
+        $this->getRequest()->setPostValue('_import_field_separator', ',');
+
+
+        $name = 'catalog_product.csv';
 
         /** @var \Magento\TestFramework\App\Filesystem $filesystem */
-        $filesystem = $this->_objectManager->get(\Magento\Framework\Filesystem::class);
+        $filesystem = $this->_objectManager->get('Magento\Framework\Filesystem');
         $tmpDir = $filesystem->getDirectoryWrite(DirectoryList::SYS_TMP);
         $subDir = str_replace('\\', '_', __CLASS__);
         $tmpDir->create($subDir);
-        $target = $tmpDir->getAbsolutePath("{$subDir}/{$fileName}");
-        copy(__DIR__ . "/_files/{$fileName}", $target);
+        $target = $tmpDir->getAbsolutePath("{$subDir}/{$name}");
+        copy(__DIR__ . "/_files/{$name}", $target);
 
         $_FILES = [
             'import_file' => [
-                'name' => $fileName,
-                'type' => $mimeType,
+                'name' => $name,
+                'type' => 'text/csv',
                 'tmp_name' => $target,
                 'error' => 0,
                 'size' => filesize($target)
@@ -64,56 +52,20 @@ class ValidateTest extends \Magento\TestFramework\TestCase\AbstractBackendContro
 
         $this->_objectManager->configure(
             [
-                'preferences' => [FileTransferFactory::class => HttpFactoryMock::class]
+                'preferences' => [
+                    'Magento\Framework\HTTP\Adapter\FileTransferFactory' =>
+                        'Magento\ImportExport\Controller\Adminhtml\Import\HttpFactoryMock'
+                    ]
             ]
         );
 
         $this->dispatch('backend/admin/import/validate');
 
-        $this->assertContains($message, $this->getResponse()->getBody());
+        $this->assertContains('File is valid', $this->getResponse()->getBody());
         $this->assertNotContains('The file was not uploaded.', $this->getResponse()->getBody());
         $this->assertNotRegExp(
             '/clear[^\[]*\[[^\]]*(import_file|import_image_archive)[^\]]*\]/m',
             $this->getResponse()->getBody()
         );
-    }
-
-    /**
-     * @return array
-     */
-    public function validationDataProvider(): array
-    {
-        return [
-            [
-                'file_name' => 'catalog_product.csv',
-                'mime-type' => 'text/csv',
-                'message' => 'File is valid',
-                'delimiter' => ',',
-            ],
-            [
-                'file_name' => 'test.txt',
-                'mime-type' => 'text/csv',
-                'message' => 'The file cannot be uploaded.',
-                'delimiter' => ',',
-            ],
-            [
-                'file_name' => 'incorrect_catalog_product_comma.csv',
-                'mime-type' => 'text/csv',
-                'message' => 'Download full report',
-                'delimiter' => ',',
-            ],
-            [
-                'file_name' => 'incorrect_catalog_product_semicolon.csv',
-                'mime-type' => 'text/csv',
-                'message' => 'Download full report',
-                'delimiter' => ';',
-            ],
-            [
-                'file_name' => 'catalog_product.zip',
-                'mime-type' => 'application/zip',
-                'message' => 'File is valid',
-                'delimiter' => ',',
-            ],
-        ];
     }
 }

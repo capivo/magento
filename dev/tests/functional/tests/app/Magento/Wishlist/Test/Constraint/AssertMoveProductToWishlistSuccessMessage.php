@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -30,7 +30,7 @@ class AssertMoveProductToWishlistSuccessMessage extends AbstractConstraint
      */
     public function processAssert(WishlistIndex $wishlistIndex, InjectableFixture $product)
     {
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             sprintf(self::SUCCESS_MESSAGE, $product->getName()),
             $wishlistIndex->getMessagesBlock()->getSuccessMessage(),
             "Expected success move to wish list message doesn't match actual."

@@ -1,26 +1,15 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Setup\Test\Unit\Module;
 
-use Magento\Framework\App\DeploymentConfig;
-use Magento\Framework\Config\Data\ConfigData;
-use Magento\Framework\Config\Data\ConfigDataFactory;
 use Magento\Framework\Config\File\ConfigFilePool;
-use Magento\Framework\Math\Random;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Setup\Model\ConfigGenerator;
 use Magento\Framework\Config\ConfigOptionsListConstants;
-use Magento\Setup\Model\CryptKeyGenerator;
-use PHPUnit\Framework\TestCase;
-use Magento\Setup\Model\ConfigOptionsList\DriverOptions;
 
-/**
- * Test for Magento\Setup\Model\ConfigGenerator class.
- */
-class ConfigGeneratorTest extends TestCase
+class ConfigGeneratorTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var ConfigGenerator
@@ -29,37 +18,18 @@ class ConfigGeneratorTest extends TestCase
 
     protected function setUp()
     {
-        /** @var DeploymentConfig|\PHPUnit_Framework_MockObject_MockObject $deployConfig */
-        $deployConfig = $this->createMock(DeploymentConfig::class);
+        $random = $this->getMock('Magento\Framework\Math\Random', [], [], '', false);
+        $random->expects($this->any())->method('getRandomString')->willReturn('key');
+        $deployConfig= $this->getMock('Magento\Framework\App\DeploymentConfig', [], [], '', false);
         $deployConfig->expects($this->any())->method('isAvailable')->willReturn(false);
+        $this->configGeneratorObject = new ConfigGenerator($random, $deployConfig);
+    }
 
-        /** @var Random|\PHPUnit_Framework_MockObject_MockObject $randomMock */
-        $randomMock = $this->createMock(Random::class);
-        $randomMock->expects($this->any())->method('getRandomString')->willReturn('key');
-
-        $cryptKeyGenerator = new CryptKeyGenerator($randomMock);
-
-        $objectManagerMock = $this->getMockBuilder(\Magento\Framework\App\ObjectManager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $objectManagerMock->method('create')->willReturn(new ConfigData('app_env'));
-
-        $configDataFactoryMock = (new ObjectManager($this))
-            ->getObject(ConfigDataFactory::class, ['objectManager' => $objectManagerMock]);
-
-        $driverOptions = $this->getMockBuilder(DriverOptions::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getDriverOptions'])
-            ->getMock();
-
-        $this->configGeneratorObject = new ConfigGenerator(
-            $randomMock,
-            $deployConfig,
-            $configDataFactoryMock,
-            $cryptKeyGenerator,
-            $driverOptions
-        );
+    public function testCreateInstallConfig()
+    {
+        $returnValue = $this->configGeneratorObject->createInstallConfig([]);
+        $this->assertInstanceOf('Magento\Framework\Config\Data\ConfigData', $returnValue);
+        $this->assertEquals(ConfigFilePool::APP_ENV, $returnValue->getFileKey());
     }
 
     public function testCreateCryptConfigWithInput()
@@ -74,7 +44,6 @@ class ConfigGeneratorTest extends TestCase
     {
         $returnValue = $this->configGeneratorObject->createCryptConfig([]);
         $this->assertEquals(ConfigFilePool::APP_ENV, $returnValue->getFileKey());
-        // phpcs:ignore Magento2.Security.InsecureFunction
         $this->assertEquals(['crypt' => ['key' => md5('key')]], $returnValue->getData());
     }
 
@@ -102,6 +71,14 @@ class ConfigGeneratorTest extends TestCase
         $returnValue = $this->configGeneratorObject->createSessionConfig([]);
         $this->assertEquals(ConfigFilePool::APP_ENV, $returnValue->getFileKey());
         $this->assertEquals([], $returnValue->getData());
+    }
+
+    public function testCreateDefinitionsConfig()
+    {
+        $testData = [ConfigOptionsListConstants::INPUT_KEY_DEFINITION_FORMAT => 'test-format'];
+        $returnValue = $this->configGeneratorObject->createDefinitionsConfig($testData);
+        $this->assertEquals(ConfigFilePool::APP_ENV, $returnValue->getFileKey());
+        $this->assertEquals(['definition' => ['format' => 'test-format']], $returnValue->getData());
     }
 
     public function testCreateDbConfig()

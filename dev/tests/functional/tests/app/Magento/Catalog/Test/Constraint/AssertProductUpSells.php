@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -44,10 +44,9 @@ class AssertProductUpSells extends AbstractConstraint
 
         $browser->open($_ENV['app_frontend_url'] . $product->getUrlKey() . '.html');
         foreach ($promotedProducts as $promotedProduct) {
-            \PHPUnit\Framework\Assert::assertTrue(
+            \PHPUnit_Framework_Assert::assertTrue(
                 $catalogProductView->getUpsellBlock()->getProductItem($promotedProduct)->isVisible(),
-                'Product \'' . $promotedProduct->getName()
-                . '\' is absent in up-sells products of a product \'' . $product->getName() . '\'.'
+                'Product \'' . $promotedProduct->getName() . '\' is absent in up-sells products.'
             );
         }
     }

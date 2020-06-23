@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -25,7 +25,7 @@ class AssertProductIsNotEditable extends AbstractConstraint
     public function processAssert(CheckoutCart $checkoutCart, array $products)
     {
         foreach ($products as $product) {
-            \PHPUnit\Framework\Assert::assertFalse(
+            \PHPUnit_Framework_Assert::assertFalse(
                 $checkoutCart->getCartBlock()->getCartItem($product)->isEditButtonVisible(),
                 'Added product is editable.'
             );

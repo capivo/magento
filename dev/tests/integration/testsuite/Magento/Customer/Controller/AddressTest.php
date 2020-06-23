@@ -1,37 +1,28 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Customer\Controller;
 
-use Magento\Customer\Api\AccountManagementInterface;
-use Magento\Customer\Model\CustomerRegistry;
-use Magento\Framework\Data\Form\FormKey;
 use Magento\TestFramework\Helper\Bootstrap;
-use Magento\Framework\App\Request\Http as HttpRequest;
 
 class AddressTest extends \Magento\TestFramework\TestCase\AbstractController
 {
-    /** @var AccountManagementInterface */
+    /** @var \Magento\Customer\Api\AccountManagementInterface */
     private $accountManagement;
 
-    /** @var FormKey */
-    private $formKey;
-
-    /**
-     * @inheritDoc
-     */
     protected function setUp()
     {
         parent::setUp();
-        $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $logger = $this->getMock('Psr\Log\LoggerInterface', [], [], '', false);
         $session = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
-            \Magento\Customer\Model\Session::class,
+            'Magento\Customer\Model\Session',
             [$logger]
         );
-        $this->accountManagement = Bootstrap::getObjectManager()->create(AccountManagementInterface::class);
-        $this->formKey = Bootstrap::getObjectManager()->create(FormKey::class);
+        $this->accountManagement = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
+            'Magento\Customer\Api\AccountManagementInterface'
+        );
         $customer = $this->accountManagement->authenticate('customer@example.com', 'password');
         $session->setCustomerDataAsLoggedIn($customer);
     }
@@ -76,7 +67,7 @@ class AddressTest extends \Magento\TestFramework\TestCase\AbstractController
             'POST'
         )->setPostValue(
             [
-                'form_key' => $this->_objectManager->get(\Magento\Framework\Data\Form\FormKey::class)->getFormKey(),
+                'form_key' => $this->_objectManager->get('Magento\Framework\Data\Form\FormKey')->getFormKey(),
                 'firstname' => 'James',
                 'lastname' => 'Bond',
                 'company' => 'Magento Commerce Inc.',
@@ -95,7 +86,7 @@ class AddressTest extends \Magento\TestFramework\TestCase\AbstractController
         );
         // we are overwriting the address coming from the fixture
         $this->dispatch('customer/address/formPost');
-        $this->getCustomerRegistry()->remove(1);
+
         $this->assertRedirect($this->stringContains('customer/address/index'));
         $this->assertSessionMessages(
             $this->equalTo(['You saved the address.']),
@@ -111,14 +102,6 @@ class AddressTest extends \Magento\TestFramework\TestCase\AbstractController
     }
 
     /**
-     * @return CustomerRegistry
-     */
-    private function getCustomerRegistry()
-    {
-        return $this->_objectManager->get(CustomerRegistry::class);
-    }
-
-    /**
      * @magentoDataFixture Magento/Customer/_files/customer.php
      * @magentoDataFixture Magento/Customer/_files/customer_address.php
      */
@@ -131,7 +114,7 @@ class AddressTest extends \Magento\TestFramework\TestCase\AbstractController
             'POST'
         )->setPostValue(
             [
-                'form_key' => $this->_objectManager->get(\Magento\Framework\Data\Form\FormKey::class)->getFormKey(),
+                'form_key' => $this->_objectManager->get('Magento\Framework\Data\Form\FormKey')->getFormKey(),
                 'firstname' => 'James',
                 'lastname' => 'Bond',
                 'company' => 'Magento Commerce Inc.',
@@ -148,14 +131,14 @@ class AddressTest extends \Magento\TestFramework\TestCase\AbstractController
         );
         // we are overwriting the address coming from the fixture
         $this->dispatch('customer/address/formPost');
-        $this->getCustomerRegistry()->remove(1);
+
         $this->assertRedirect($this->stringContains('customer/address/edit'));
         $this->assertSessionMessages(
             $this->equalTo(
                 [
                     'One or more input exceptions have occurred.',
-                    '&quot;street&quot; is required. Enter and try again.',
-                    '&quot;city&quot; is required. Enter and try again.',
+                    'street is a required field.',
+                    'city is a required field.',
                 ]
             ),
             \Magento\Framework\Message\MessageInterface::TYPE_ERROR
@@ -169,7 +152,6 @@ class AddressTest extends \Magento\TestFramework\TestCase\AbstractController
     public function testDeleteAction()
     {
         $this->getRequest()->setParam('id', 1);
-        $this->getRequest()->setParam('form_key', $this->formKey->getFormKey())->setMethod(HttpRequest::METHOD_POST);
         // we are overwriting the address coming from the fixture
         $this->dispatch('customer/address/delete');
 
@@ -187,7 +169,6 @@ class AddressTest extends \Magento\TestFramework\TestCase\AbstractController
     public function testWrongAddressDeleteAction()
     {
         $this->getRequest()->setParam('id', 555);
-        $this->getRequest()->setParam('form_key', $this->formKey->getFormKey())->setMethod(HttpRequest::METHOD_POST);
         // we are overwriting the address coming from the fixture
         $this->dispatch('customer/address/delete');
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -40,7 +40,7 @@ class AssertTaxRateForm extends AbstractConstraint
         $taxRateIndexPage->getTaxRateGrid()->searchAndOpen($filter);
         $formData = $taxRateNewPage->getTaxRateForm()->getData($taxRate);
         $dataDiff = $this->verifyForm($formData, $data);
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             empty($dataDiff),
             'Tax Rate form was filled incorrectly.'
             . "\nLog:\n" . implode(";\n", $dataDiff)

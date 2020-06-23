@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -48,7 +48,7 @@ class AssertProductReviewInGridOnCustomerPage extends AbstractConstraint
         $reviewsGrid = $customerIndexEdit->getCustomerForm()->getTab('product_reviews')->getReviewsGrid();
         $reviewsGrid->search($filter);
         unset($filter['visible_in']);
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $reviewsGrid->isRowVisible($filter, false),
             'Review is absent in Review grid on customer page.'
         );

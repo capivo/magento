@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -36,7 +36,7 @@ class AssertUrlRewriteSuccessOutsideRedirect extends AbstractConstraint
         $browser->open($_ENV['app_frontend_url'] . $urlRequestPath);
         $browserUrl = $browser->getUrl();
 
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $browserUrl,
             $urlTargetPath,
             'URL rewrite redirect false.'

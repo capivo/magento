@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Update\Queue;
 
 use Magento\Update\MaintenanceMode;
 
-class JobBackupTest extends \PHPUnit\Framework\TestCase
+class JobBackupTest extends \PHPUnit_Framework_TestCase
 {
     /** @var  string */
     protected $backupFilename;

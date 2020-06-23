@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -28,13 +28,13 @@ class AssertCatalogPriceRuleNotAppliedShoppingCart extends AbstractConstraint
         array $productPrice
     ) {
         $this->objectManager->create(
-            \Magento\Checkout\Test\TestStep\AddProductsToTheCartStep::class,
+            '\Magento\Checkout\Test\TestStep\AddProductsToTheCartStep',
             ['products' => $products]
         )->run();
         $checkoutCartPage->open();
         foreach ($products as $key => $product) {
             $actualPrice = $checkoutCartPage->getCartBlock()->getCartItem($product)->getSubtotalPrice();
-            \PHPUnit\Framework\Assert::assertEquals(
+            \PHPUnit_Framework_Assert::assertEquals(
                 $productPrice[$key]['regular'],
                 $actualPrice,
                 'Wrong product price is displayed.'

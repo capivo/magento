@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Widget\Model\Widget;
@@ -8,7 +8,7 @@ namespace Magento\Widget\Model\Widget;
 /**
  * @magentoAppArea adminhtml
  */
-class ConfigTest extends \PHPUnit\Framework\TestCase
+class ConfigTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \Magento\Widget\Model\Widget\Config
@@ -18,7 +18,7 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
     protected function setUp()
     {
         $this->_model = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
-            \Magento\Widget\Model\Widget\Config::class
+            'Magento\Widget\Model\Widget\Config'
         );
     }
 
@@ -30,7 +30,7 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
     public function testGetPluginSettings()
     {
         \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->get(
-            \Magento\Framework\View\DesignInterface::class
+            'Magento\Framework\View\DesignInterface'
         )->setDesignTheme(
             'Magento/backend'
         );
@@ -38,23 +38,19 @@ class ConfigTest extends \PHPUnit\Framework\TestCase
         $config = new \Magento\Framework\DataObject();
         $settings = $this->_model->getPluginSettings($config);
 
-        $this->assertArrayHasKey('plugins', $settings);
-        $plugins = array_shift($settings['plugins']);
-        $this->assertArrayHasKey('options', $plugins);
-        $this->assertArrayHasKey('window_url', $plugins['options']);
-        $this->assertArrayHasKey('placeholders', $plugins['options']);
+        $this->assertArrayHasKey('widget_plugin_src', $settings);
+        $this->assertArrayHasKey('widget_placeholders', $settings);
+        $this->assertArrayHasKey('widget_window_url', $settings);
 
-        $jsFilename = $plugins['src'];
-        $this->assertStringMatchesFormat(
-            'http://localhost/pub/static/%s/adminhtml/Magento/backend/en_US/%s/editor_plugin.js',
-            $jsFilename
-        );
+        $jsFilename = $settings['widget_plugin_src'];
+        $this->assertStringStartsWith('http://localhost/pub/static/adminhtml/Magento/backend/en_US/', $jsFilename);
+        $this->assertStringEndsWith('editor_plugin.js', $jsFilename);
 
-        $this->assertInternalType('array', $plugins['options']['placeholders']);
+        $this->assertInternalType('array', $settings['widget_placeholders']);
 
         $this->assertStringStartsWith(
             'http://localhost/index.php/backend/admin/widget/index/key',
-            $plugins['options']['window_url']
+            $settings['widget_window_url']
         );
     }
 

@@ -2,17 +2,14 @@
 /**
  * Test for \Magento\Framework\Model\ResourceModel\Db\Profiler
  *
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\Model\ResourceModel\Db;
 
 use Magento\Framework\Config\ConfigOptionsListConstants;
 
-/**
- * Class ProfilerTest
- */
-class ProfilerTest extends \PHPUnit\Framework\TestCase
+class ProfilerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \Magento\Framework\App\ResourceConnection
@@ -24,32 +21,22 @@ class ProfilerTest extends \PHPUnit\Framework\TestCase
      */
     protected static $_testResourceName = 'testtest_0000_setup';
 
-    /**
-     * @inheritdoc
-     *
-     * phpcs:disable Magento2.Functions.StaticFunction
-     */
     public static function setUpBeforeClass()
     {
-        self::$_testResourceName = 'testtest_' . random_int(1000, 9999) . '_setup';
+        self::$_testResourceName = 'testtest_' . mt_rand(1000, 9999) . '_setup';
 
         \Magento\Framework\Profiler::enable();
-    } // phpcs:enable
+    }
 
-    /**
-     * @inheritdoc
-     *
-     * phpcs:disable Magento2.Functions.StaticFunction
-     */
     public static function tearDownAfterClass()
     {
         \Magento\Framework\Profiler::disable();
-    } // phpcs:enable
+    }
 
     protected function setUp()
     {
         $this->_model = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
-            ->create(\Magento\Framework\App\ResourceConnection::class);
+            ->create('Magento\Framework\App\ResourceConnection');
     }
 
     /**
@@ -58,15 +45,15 @@ class ProfilerTest extends \PHPUnit\Framework\TestCase
     protected function _getConnection()
     {
         $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
-        $reader = $objectManager->get(\Magento\Framework\App\DeploymentConfig::class);
+        $reader = $objectManager->get('Magento\Framework\App\DeploymentConfig');
         $dbConfig = $reader->getConfigData(ConfigOptionsListConstants::KEY_DB);
         $connectionConfig = $dbConfig['connection']['default'];
         $connectionConfig['profiler'] = [
-            'class' => \Magento\Framework\Model\ResourceModel\Db\Profiler::class,
+            'class' => 'Magento\Framework\Model\ResourceModel\Db\Profiler',
             'enabled' => 'true',
         ];
 
-        return $objectManager->create(\Magento\TestFramework\Db\Adapter\Mysql::class, ['config' => $connectionConfig]);
+        return $objectManager->create('Magento\TestFramework\Db\Adapter\Mysql', ['config' => $connectionConfig]);
     }
 
     /**
@@ -82,7 +69,7 @@ class ProfilerTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Magento\Framework\App\ResourceConnection $resource */
         $resource = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
-            ->get(\Magento\Framework\App\ResourceConnection::class);
+            ->get('Magento\Framework\App\ResourceConnection');
         $testTableName = $resource->getTableName('setup_module');
         $selectQuery = sprintf($selectQuery, $testTableName);
 
@@ -93,7 +80,7 @@ class ProfilerTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Magento\Framework\Model\ResourceModel\Db\Profiler $profiler */
         $profiler = $connection->getProfiler();
-        $this->assertInstanceOf(\Magento\Framework\Model\ResourceModel\Db\Profiler::class, $profiler);
+        $this->assertInstanceOf('Magento\Framework\Model\ResourceModel\Db\Profiler', $profiler);
 
         $queryProfiles = $profiler->getQueryProfiles($queryType);
         $this->assertCount(1, $queryProfiles);
@@ -139,24 +126,23 @@ class ProfilerTest extends \PHPUnit\Framework\TestCase
         $connection = $this->_getConnection();
 
         try {
-            $connection->select()->from('unknown_table')->query()->fetch();
+            $connection->query('SELECT * FROM unknown_table');
         } catch (\Zend_Db_Statement_Exception $exception) {
-            $this->assertNotEmpty($exception);
         }
 
         if (!isset($exception)) {
-            $this->fail("Expected exception wasn't thrown!");
+            $this->fail("Expected exception didn't thrown!");
         }
 
         /** @var \Magento\Framework\App\ResourceConnection $resource */
         $resource = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
-            ->get(\Magento\Framework\App\ResourceConnection::class);
+            ->get('Magento\Framework\App\ResourceConnection');
         $testTableName = $resource->getTableName('setup_module');
-        $connection->select()->from($testTableName)->query()->fetch();
+        $connection->query('SELECT * FROM ' . $testTableName);
 
         /** @var \Magento\Framework\Model\ResourceModel\Db\Profiler $profiler */
         $profiler = $connection->getProfiler();
-        $this->assertInstanceOf(\Magento\Framework\Model\ResourceModel\Db\Profiler::class, $profiler);
+        $this->assertInstanceOf('Magento\Framework\Model\ResourceModel\Db\Profiler', $profiler);
 
         $queryProfiles = $profiler->getQueryProfiles(\Magento\Framework\DB\Profiler::SELECT);
         $this->assertCount(2, $queryProfiles);

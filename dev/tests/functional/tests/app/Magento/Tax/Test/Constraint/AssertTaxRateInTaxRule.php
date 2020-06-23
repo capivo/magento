@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -30,7 +30,7 @@ class AssertTaxRateInTaxRule extends AbstractConstraint
         $taxRuleIndex->open();
         $taxRuleIndex->getGridPageActions()->addNew();
 
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $taxRuleNew->getTaxRuleForm()->isTaxRateAvailable($taxRateCode),
             "$taxRateCode is not present in Tax Rates multiselect on tax rule creation page."
         );

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -55,7 +55,7 @@ class AssertCustomerGroupForm extends AbstractConstraint
         $customerGroupIndex->getCustomerGroupGrid()->searchAndOpen($filter);
         $formData = $customerGroupNew->getPageMainForm()->getData();
         $dataDiff = $this->verifyForm($formData, $data);
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             empty($dataDiff),
             'Customer Group form was filled incorrectly.'
             . "\nLog:\n" . implode(";\n", $dataDiff)

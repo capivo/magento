@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -55,14 +55,14 @@ class AssertBundlePriceView extends AbstractConstraint
             $priceLow = ($priceView == 'Price Range') ? $priceBlock->getPriceFrom() : $priceBlock->getPrice();
         }
 
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $priceData['price_from'],
             $priceLow,
             'Bundle price From on product view page is not correct.'
         );
 
         if ($priceView == 'Price Range') {
-            \PHPUnit\Framework\Assert::assertEquals(
+            \PHPUnit_Framework_Assert::assertEquals(
                 $priceData['price_to'],
                 $priceBlock->getPriceTo(),
                 'Bundle price To on product view page is not correct.'

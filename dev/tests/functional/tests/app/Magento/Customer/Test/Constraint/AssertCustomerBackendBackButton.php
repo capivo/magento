@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -25,7 +25,7 @@ class AssertCustomerBackendBackButton extends AbstractConstraint
     public function processAssert(CustomerIndexEdit $customerEditPage, CustomerIndex $customerGridPage)
     {
         $customerEditPage->getPageActionsBlock()->back();
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $customerGridPage->getCustomerGridBlock()->isVisible(),
             'Clicking on "Back" button does not redirect to customers grid.'
         );

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -19,7 +19,7 @@ class Payment extends Block
      *
      * @var string
      */
-    protected $paymentMethodInput = '[id*="%s"]';
+    protected $paymentMethodInput = '#%s';
 
     /**
      * Labels for payment methods.
@@ -33,7 +33,7 @@ class Payment extends Block
      *
      * @var string
      */
-    protected $paymentMethodLabel = '[for*="%s"]';
+    protected $paymentMethodLabel = '[for="%s"]';
 
     /**
      * Continue checkout button.
@@ -47,8 +47,8 @@ class Payment extends Block
      *
      * @var string
      */
-    protected $placeOrder = '.payment-method._active .action.primary.checkout';
-
+    protected $placeOrder = '.action.primary.checkout';
+    
     /**
      * Wait element.
      *
@@ -70,61 +70,42 @@ class Payment extends Block
      */
     protected $activePaymentMethodSelector = '.payment-method._active';
 
+
     /**
      * Select payment method.
      *
      * @param array $payment
      * @param CreditCard|null $creditCard
-     * @param string $paymentForm
-     * @param bool $fillCreditCardOn3rdParty
      * @throws \Exception
+     * @return void
      */
-    public function selectPaymentMethod(
-        array $payment,
-        CreditCard $creditCard = null,
-        $paymentForm = 'default',
-        $fillCreditCardOn3rdParty = false
-    ) {
-        $paymentMethod = $payment['method'];
-        $paymentSelector = sprintf($this->paymentMethodInput, $paymentMethod);
-        $paymentLabelSelector = sprintf($this->paymentMethodLabel, $paymentMethod);
+    public function selectPaymentMethod(array $payment, CreditCard $creditCard = null)
+    {
+        $paymentSelector = sprintf($this->paymentMethodInput, $payment['method']);
+        $paymentLabelSelector = sprintf($this->paymentMethodLabel, $payment['method']);
 
         try {
-            $this->waitForElementNotVisible($this->waitElement);
             $this->waitForElementVisible($paymentLabelSelector);
         } catch (\Exception $exception) {
             throw new \Exception('Such payment method is absent.');
         }
-        $browser = $this->browser;
-        $browser->waitUntil(
-            function () use ($browser, $paymentSelector) {
-                return $browser->find($paymentSelector);
-            }
-        );
+
         $paymentRadioButton = $this->_rootElement->find($paymentSelector);
         if ($paymentRadioButton->isVisible()) {
             $paymentRadioButton->click();
         }
 
-        if (isset($payment['po_number'])) {
+        if ($payment['method'] == "purchaseorder") {
             $this->_rootElement->find($this->purchaseOrderNumber)->setValue($payment['po_number']);
         }
-        if ($creditCard !== null && $fillCreditCardOn3rdParty === false) {
-            $this->callRender($paymentForm, 'fill', [$creditCard]);
+        if ($creditCard !== null) {
+            /** @var \Magento\Payment\Test\Block\Form\Cc $formBlock */
+            $formBlock = $this->blockFactory->create(
+                '\\Magento\\Payment\\Test\\Block\\Form\\Cc',
+                ['element' => $this->_rootElement->find('#payment_form_' . $payment['method'])]
+            );
+            $formBlock->fill($creditCard);
         }
-    }
-
-    /**
-     * Check visibility of payment method block by payment method type.
-     *
-     * @param array $payment
-     * @return bool
-     */
-    public function isVisiblePaymentMethod(array $payment)
-    {
-        $paymentSelector = sprintf($this->paymentMethodInput, $payment['method']);
-
-        return $this->_rootElement->find($paymentSelector)->isVisible();
     }
 
     /**
@@ -137,7 +118,7 @@ class Payment extends Block
         $element = $this->_rootElement->find($this->activePaymentMethodSelector);
 
         return $this->blockFactory->create(
-            \Magento\Checkout\Test\Block\Onepage\Payment\Method::class,
+            '\Magento\Checkout\Test\Block\Onepage\Payment\Method',
             ['element' => $element]
         );
     }
@@ -151,20 +132,5 @@ class Payment extends Block
     {
         $this->_rootElement->find($this->placeOrder)->click();
         $this->waitForElementNotVisible($this->waitElement);
-    }
-
-    /**
-     * Retrieve list of payment methods.
-     *
-     * @return array
-     */
-    public function getPaymentMethods()
-    {
-        $paymentMethodsArray = [];
-        $paymentMethods = $this->_rootElement->getElements($this->paymentMethodLabels);
-        foreach ($paymentMethods as $paymentMethod) {
-            $paymentMethodsArray[] = $paymentMethod->getText();
-        }
-        return $paymentMethodsArray;
     }
 }

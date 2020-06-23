@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -29,17 +29,18 @@ class AssertProductCanBeOpenedFromSearchResult extends AbstractConstraint
         AdvancedResult $resultPage,
         CatalogProductView $catalogProductViewPage
     ) {
-        $product = $catalogSearch->getDataFieldConfig('query_text')['source']->getFirstProduct();
+        $product = $catalogSearch->getDataFieldConfig('query_text')['source']->getProduct();
 
-        do {
+        $isProductVisible = $resultPage->getListProductBlock()->getProductItem($product)->isVisible();
+        while (!$isProductVisible && $resultPage->getBottomToolbar()->nextPage()) {
             $isProductVisible = $resultPage->getListProductBlock()->getProductItem($product)->isVisible();
-        } while (!$isProductVisible && $resultPage->getBottomToolbar()->nextPage());
+        }
 
         $productName = $product->getName();
-        \PHPUnit\Framework\Assert::assertTrue($isProductVisible, "A product with name $productName was not found.");
+        \PHPUnit_Framework_Assert::assertTrue($isProductVisible, "A product with name $productName was not found.");
 
         $resultPage->getListProductBlock()->getProductItem($product)->open();
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $productName,
             $catalogProductViewPage->getViewBlock()->getProductName(),
             'Wrong product page has been opened.'

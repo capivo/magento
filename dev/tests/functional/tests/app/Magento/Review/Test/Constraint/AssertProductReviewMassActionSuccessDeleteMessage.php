@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -36,7 +36,7 @@ class AssertProductReviewMassActionSuccessDeleteMessage extends AbstractConstrai
     {
         $reviews = is_array($review) ? $review : [$review];
         $deleteMessage = sprintf(self::SUCCESS_DELETE_MESSAGE, count($reviews));
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $deleteMessage,
             $reviewIndex->getMessagesBlock()->getSuccessMessage(),
             'Wrong success message is displayed.'

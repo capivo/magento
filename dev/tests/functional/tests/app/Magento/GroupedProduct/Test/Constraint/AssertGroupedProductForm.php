@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -40,7 +40,7 @@ class AssertGroupedProductForm extends AssertProductForm
         $fieldsFixture['associated'] = $this->prepareGroupedOptions($fieldsFixture['associated']);
 
         $errors = $this->verifyData($fieldsFixture, $fieldsForm);
-        \PHPUnit\Framework\Assert::assertEmpty($errors, $errors);
+        \PHPUnit_Framework_Assert::assertEmpty($errors, $errors);
     }
 
     /**

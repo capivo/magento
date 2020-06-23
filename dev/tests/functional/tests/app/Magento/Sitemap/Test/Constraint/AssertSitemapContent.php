@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -52,7 +52,7 @@ class AssertSitemapContent extends AbstractConstraint
             $_ENV['app_frontend_url'] . $cmsPage->getIdentifier(),
         ];
 
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $this->checkContent($content, $urls),
             'Content of file sitemap.xml does not include one or more of next urls:'
             . implode("\n", $urls)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
  -->
@@ -19,7 +19,6 @@
             <constraint name="Magento\Variable\Test\Constraint\AssertCustomVariableInPage" />
         </variation>
         <variation name="UpdateCustomVariableEntityTestVariation2">
-            <data name="configData" xsi:type="string">add_store_code_to_urls</data>
             <data name="customVariable/data/code" xsi:type="string">variableCode%isolation%</data>
             <data name="customVariable/data/name" xsi:type="string">variableName%isolation%</data>
             <data name="customVariable/data/use_default_value" xsi:type="string">No</data>
@@ -31,7 +30,6 @@
             <constraint name="Magento\Variable\Test\Constraint\AssertCustomVariableInPage" />
         </variation>
         <variation name="UpdateCustomVariableEntityTestVariation3">
-            <data name="configData" xsi:type="string">add_store_code_to_urls</data>
             <data name="customVariable/data/code" xsi:type="string">variableCode%isolation%</data>
             <data name="customVariable/data/name" xsi:type="string">variableName%isolation%</data>
             <data name="customVariable/data/use_default_value" xsi:type="string">No</data>
@@ -44,7 +42,6 @@
             <constraint name="Magento\Variable\Test\Constraint\AssertCustomVariableInPage" />
         </variation>
         <variation name="UpdateCustomVariableEntityTestVariation4">
-            <data name="configData" xsi:type="string">add_store_code_to_urls</data>
             <data name="customVariable/data/code" xsi:type="string">variableCode%isolation%</data>
             <data name="customVariable/data/name" xsi:type="string">variableName%isolation%</data>
             <data name="customVariable/data/use_default_value" xsi:type="string">No</data>
@@ -53,7 +50,6 @@
             <data name="saveAction" xsi:type="string">save</data>
             <constraint name="Magento\Variable\Test\Constraint\AssertCustomVariableSuccessSaveMessage" />
             <constraint name="Magento\Variable\Test\Constraint\AssertCustomVariableInGrid" />
-            <constraint name="Magento\Variable\Test\Constraint\AssertCustomVariableForm" />
             <constraint name="Magento\Variable\Test\Constraint\AssertCustomVariableInPage" />
         </variation>
     </testCase>

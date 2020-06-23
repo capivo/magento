@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -10,8 +10,13 @@ use Magento\Setup\Module\Di\App\Task\Operation\RepositoryGenerator;
 use Magento\Setup\Module\Di\Code\Scanner;
 use Magento\Setup\Module\Di\Code\Reader\ClassesScanner;
 
-class RepositoryGeneratorTest extends \PHPUnit\Framework\TestCase
+class RepositoryGeneratorTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var Scanner\DirectoryScanner | \PHPUnit_Framework_MockObject_MockObject
+     */
+    private $directoryScannerMock;
+
     /**
      * @var Scanner\RepositoryScanner | \PHPUnit_Framework_MockObject_MockObject
      */
@@ -22,59 +27,81 @@ class RepositoryGeneratorTest extends \PHPUnit\Framework\TestCase
      */
     private $classesScannerMock;
 
-    /**
-     * @var \Magento\Setup\Module\Di\Code\Scanner\ConfigurationScanner | \PHPUnit_Framework_MockObject_MockObject
-     */
-    private $configurationScannerMock;
-
-    /**
-     * @var \Magento\Setup\Module\Di\App\Task\Operation\RepositoryGenerator
-     */
-    private $model;
-
     protected function setUp()
     {
-        $this->repositoryScannerMock =
-            $this->getMockBuilder(\Magento\Setup\Module\Di\Code\Scanner\RepositoryScanner::class)
+        $this->directoryScannerMock = $this->getMockBuilder('Magento\Setup\Module\Di\Code\Scanner\DirectoryScanner')
+            ->setMethods([])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->classesScannerMock = $this->getMockBuilder(\Magento\Setup\Module\Di\Code\Reader\ClassesScanner::class)
+        $this->repositoryScannerMock = $this->getMockBuilder('Magento\Setup\Module\Di\Code\Scanner\RepositoryScanner')
+            ->setMethods([])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->configurationScannerMock = $this->getMockBuilder(
-            \Magento\Setup\Module\Di\Code\Scanner\ConfigurationScanner::class
-        )->disableOriginalConstructor()
+        $this->classesScannerMock = $this->getMockBuilder('Magento\Setup\Module\Di\Code\Reader\ClassesScanner')
+            ->setMethods([])
+            ->disableOriginalConstructor()
             ->getMock();
-        $objectManagerHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
-        $this->model = $objectManagerHelper->getObject(
-            \Magento\Setup\Module\Di\App\Task\Operation\RepositoryGenerator::class,
-            [
-                'repositoryScanner' => $this->repositoryScannerMock,
-                'classesScanner' => $this->classesScannerMock,
-                'configurationScanner' => $this->configurationScannerMock,
-                'data' => ['paths' => ['path/to/app']]
-            ]
-        );
     }
 
-    public function testDoOperation()
+    /**
+     * @dataProvider wrongDataDataProvider
+     */
+    public function testDoOperationEmptyData($wrongData)
     {
+        $model = new RepositoryGenerator(
+            $this->directoryScannerMock,
+            $this->classesScannerMock,
+            $this->repositoryScannerMock,
+            $wrongData
+        );
+
+        $this->assertNull($model->doOperation());
+    }
+
+    /**
+     * @return array
+     */
+    public function wrongDataDataProvider()
+    {
+        return [
+            [[]],
+            [['filePatterns' => ['php' => '*.php']]],
+            [['path' => 'path']]
+        ];
+    }
+
+    public function testDoOperationEmptyRepositories()
+    {
+        $data = [
+            'paths' => ['path/to/app'],
+            'filePatterns' => ['di' => 'di.xml'],
+            'excludePatterns' => ['/\/Test\//'],
+        ];
+        $files = ['di' => []];
+        $model = new RepositoryGenerator(
+            $this->directoryScannerMock,
+            $this->classesScannerMock,
+            $this->repositoryScannerMock,
+            $data
+        );
+
         $this->classesScannerMock->expects($this->once())
             ->method('getList')
-            ->with('path/to/app');
+            ->with($data['paths'][0]);
+        $this->directoryScannerMock->expects($this->once())
+            ->method('scan')
+            ->with(
+                $data['paths'][0],
+                $data['filePatterns']
+            )->willReturn($files);
         $this->repositoryScannerMock->expects($this->once())
             ->method('setUseAutoload')
             ->with(false);
-        $files = ['file1', 'file2'];
-        $this->configurationScannerMock->expects($this->once())
-            ->method('scan')
-            ->with('di.xml')
-            ->willReturn($files);
         $this->repositoryScannerMock->expects($this->once())
             ->method('collectEntities')
-            ->with($files)
+            ->with($files['di'])
             ->willReturn([]);
 
-        $this->model->doOperation();
+        $this->assertEmpty($model->doOperation());
     }
 }

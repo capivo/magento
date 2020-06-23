@@ -2,13 +2,12 @@
 /**
  * \Magento\Customer\Model\ResourceModel\Group\Grid\ServiceCollection
  *
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magento\Customer\Model\ResourceModel\Group\Grid;
 
-class ServiceCollectionTest extends \PHPUnit\Framework\TestCase
+class ServiceCollectionTest extends \PHPUnit_Framework_TestCase
 {
     /** @var ServiceCollection */
     protected $collection;
@@ -16,7 +15,7 @@ class ServiceCollectionTest extends \PHPUnit\Framework\TestCase
     public function setUp()
     {
         $this->collection = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
-            \Magento\Customer\Model\ResourceModel\Group\Grid\ServiceCollection::class
+            'Magento\Customer\Model\ResourceModel\Group\Grid\ServiceCollection'
         );
     }
 
@@ -98,7 +97,7 @@ class ServiceCollectionTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @expectedException \Magento\Framework\Exception\LocalizedException
-     * @expectedExceptionMessage The array of fields failed to pass. The array must include at one field.
+     * @expectedExceptionMessage When passing an array of fields there must be at least one field in the array.
      */
     public function testAddToFilterException()
     {
@@ -107,7 +106,7 @@ class ServiceCollectionTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @expectedException \Magento\Framework\Exception\LocalizedException
-     * @expectedExceptionMessage The field array failed to pass. The array must have a matching condition array.
+     * @expectedExceptionMessage When passing in a field array there must be a matching condition array.
      */
     public function testAddToFilterExceptionArrayNotSymmetric()
     {

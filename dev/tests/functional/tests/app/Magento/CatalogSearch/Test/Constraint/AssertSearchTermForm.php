@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -27,6 +27,7 @@ class AssertSearchTermForm extends AbstractConstraint
      *  - correct Store
      *  - correct Number of results
      *  - correct Number of Uses
+     *  - correct Synonym For
      *  - correct Redirect URL
      *  - correct Display in Suggested Terms
      *
@@ -44,7 +45,7 @@ class AssertSearchTermForm extends AbstractConstraint
         $formData = $editPage->getForm()->getData($searchTerm);
         $fixtureData = $searchTerm->getData();
 
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $formData,
             $fixtureData,
             'This form "Search Term" does not match the fixture data.'

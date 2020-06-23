@@ -1,8 +1,10 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
 
 namespace Magento\Customer\Controller;
 
@@ -20,7 +22,7 @@ class AjaxLoginTest extends \Magento\TestFramework\TestCase\AbstractController
     {
         /** @var \Magento\Customer\Model\Session $session */
         $session = Bootstrap::getObjectManager()
-            ->get(\Magento\Customer\Model\Session::class);
+            ->get('Magento\Customer\Model\Session');
         $session->loginById($customerId);
     }
 
@@ -32,9 +34,8 @@ class AjaxLoginTest extends \Magento\TestFramework\TestCase\AbstractController
         $this->login(1);
         $this->dispatch('customer/ajax/logout');
         $body = $this->getResponse()->getBody();
-        $logoutMessage = Bootstrap::getObjectManager()->get(
-            \Magento\Framework\Json\Helper\Data::class
-        )->jsonDecode($body);
+        $logoutMessage = Bootstrap::getObjectManager()->get('Magento\Framework\Json\Helper\Data')->jsonDecode($body);
         $this->assertContains('Logout Successful', $logoutMessage['message']);
     }
 }
+

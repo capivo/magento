@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -25,7 +25,7 @@ class AssertTotalPaypalReview extends AbstractConstraint
     {
         $reviewTotal = $expressReview->getExpressMainReviewBlock()->getReviewBlock()->getTotal();
 
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $reviewTotal,
             number_format($total, 2),
             'Total price: \'' . $reviewTotal

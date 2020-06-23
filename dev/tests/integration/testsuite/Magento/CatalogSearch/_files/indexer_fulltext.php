@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -8,13 +8,12 @@
 $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
 
 /** @var $productFirst \Magento\Catalog\Model\Product */
-$productFirst = $objectManager->create(\Magento\Catalog\Model\Product::class);
+$productFirst = $objectManager->create('Magento\Catalog\Model\Product');
 $productFirst->setTypeId('simple')
     ->setAttributeSetId(4)
     ->setWebsiteIds([1])
     ->setName('Simple Product Apple')
     ->setSku('fulltext-1')
-    ->setUrlKey('fulltext-1')
     ->setPrice(10)
     ->setMetaTitle('first meta title')
     ->setMetaKeyword('first meta keyword')
@@ -25,13 +24,12 @@ $productFirst->setTypeId('simple')
     ->save();
 
 /** @var $productFirst \Magento\Catalog\Model\Product */
-$productSecond = $objectManager->create(\Magento\Catalog\Model\Product::class);
+$productSecond = $objectManager->create('Magento\Catalog\Model\Product');
 $productSecond->setTypeId('simple')
     ->setAttributeSetId(4)
     ->setWebsiteIds([1])
     ->setName('Simple Product Banana')
     ->setSku('fulltext-2')
-    ->setUrlKey('fulltext-2')
     ->setPrice(20)
     ->setMetaTitle('second meta title')
     ->setMetaKeyword('second meta keyword')
@@ -42,13 +40,12 @@ $productSecond->setTypeId('simple')
     ->save();
 
 /** @var $productFirst \Magento\Catalog\Model\Product */
-$productThird = $objectManager->create(\Magento\Catalog\Model\Product::class);
+$productThird = $objectManager->create('Magento\Catalog\Model\Product');
 $productThird->setTypeId('simple')
     ->setAttributeSetId(4)
     ->setWebsiteIds([1])
     ->setName('Simple Product Orange')
     ->setSku('fulltext-3')
-    ->setUrlKey('fulltext-3')
     ->setPrice(20)
     ->setMetaTitle('third meta title')
     ->setMetaKeyword('third meta keyword')
@@ -59,13 +56,12 @@ $productThird->setTypeId('simple')
     ->save();
 
 /** @var $productFirst \Magento\Catalog\Model\Product */
-$productFourth = $objectManager->create(\Magento\Catalog\Model\Product::class);
+$productFourth = $objectManager->create('Magento\Catalog\Model\Product');
 $productFourth->setTypeId('simple')
     ->setAttributeSetId(4)
     ->setWebsiteIds([1])
     ->setName('Simple Product Papaya')
     ->setSku('fulltext-4')
-    ->setUrlKey('fulltext-4')
     ->setPrice(20)
     ->setMetaTitle('fourth meta title')
     ->setMetaKeyword('fourth meta keyword')
@@ -76,13 +72,12 @@ $productFourth->setTypeId('simple')
     ->save();
 
 /** @var $productFirst \Magento\Catalog\Model\Product */
-$productFifth = $objectManager->create(\Magento\Catalog\Model\Product::class);
+$productFifth = $objectManager->create('Magento\Catalog\Model\Product');
 $productFifth->setTypeId('simple')
     ->setAttributeSetId(4)
     ->setWebsiteIds([1])
     ->setName('Simple Product Cherry')
     ->setSku('fulltext-5')
-    ->setUrlKey('fulltext-5')
     ->setPrice(20)
     ->setMetaTitle('fifth meta title')
     ->setMetaKeyword('fifth meta keyword')

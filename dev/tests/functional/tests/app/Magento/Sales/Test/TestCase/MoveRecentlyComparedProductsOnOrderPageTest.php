@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -8,13 +8,10 @@ namespace Magento\Sales\Test\TestCase;
 
 use Magento\Catalog\Test\Page\Product\CatalogProductCompare;
 use Magento\Catalog\Test\Page\Product\CatalogProductView;
-use Magento\Catalog\Test\TestStep\CreateProductsStep;
 use Magento\Cms\Test\Page\CmsIndex;
 use Magento\Customer\Test\Fixture\Customer;
 use Magento\Customer\Test\Page\Adminhtml\CustomerIndex;
 use Magento\Customer\Test\Page\Adminhtml\CustomerIndexEdit;
-use Magento\Customer\Test\TestStep\LoginCustomerOnFrontendStep;
-use Magento\Mtf\Util\Command\Cli\Config;
 use Magento\Sales\Test\Page\Adminhtml\OrderCreateIndex;
 use Magento\Mtf\Client\BrowserInterface;
 use Magento\Mtf\TestCase\Injectable;
@@ -34,7 +31,7 @@ use Magento\Mtf\TestCase\Injectable;
  * 5. Click 'Update Changes'.
  * 6. Perform all assertions.
  *
- * @group Order_Management
+ * @group Order_Management_(CS)
  * @ZephyrId MAGETWO-28109
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -43,6 +40,7 @@ class MoveRecentlyComparedProductsOnOrderPageTest extends Injectable
 {
     /* tags */
     const MVP = 'yes';
+    const DOMAIN = 'CS';
     /* end tags */
 
     /**
@@ -95,26 +93,20 @@ class MoveRecentlyComparedProductsOnOrderPageTest extends Injectable
     protected $catalogProductCompare;
 
     /**
-     * @var Config
-     */
-    private $config;
-
-    /**
      * Create customer.
+     *
      * @param Customer $customer
      * @param BrowserInterface $browser
-     * @param Config $config
      * @return array
      */
-    public function __prepare(Customer $customer, BrowserInterface $browser, Config $config)
+    public function __prepare(Customer $customer, BrowserInterface $browser)
     {
         $customer->persist();
         // Login under customer
         $this->objectManager
-            ->create(LoginCustomerOnFrontendStep::class, ['customer' => $customer])
+            ->create('Magento\Customer\Test\TestStep\LoginCustomerOnFrontendStep', ['customer' => $customer])
             ->run();
         $this->browser = $browser;
-        $this->config = $config;
 
         return ['customer' => $customer];
     }
@@ -146,26 +138,19 @@ class MoveRecentlyComparedProductsOnOrderPageTest extends Injectable
         $this->catalogProductCompare = $catalogProductCompare;
     }
 
-    public function setUp()
-    {
-        $this->config->setConfig('reports/options/enabled', 1);
-        parent::setUp();
-    }
-
     /**
      * Move recently compared products on order page.
+     *
      * @param Customer $customer
      * @param string $products
-     * @param bool $productsIsConfigured
      * @return array
-     * @throws \Exception
      */
-    public function test(Customer $customer, $products, $productsIsConfigured = false)
+    public function test(Customer $customer, $products)
     {
         // Preconditions
         // Create product
         $products = $this->objectManager->create(
-            CreateProductsStep::class,
+            '\Magento\Catalog\Test\TestStep\CreateProductsStep',
             ['products' => $products]
         )->run()['products'];
         foreach ($products as $itemProduct) {
@@ -184,12 +169,6 @@ class MoveRecentlyComparedProductsOnOrderPageTest extends Injectable
         $activitiesBlock->getRecentlyComparedProductsBlock()->addProductsToOrder($products);
         $activitiesBlock->updateChanges();
 
-        return ['products' => $products, 'productsIsConfigured' => $productsIsConfigured];
-    }
-
-    public function tearDown()
-    {
-        $this->config->setConfig('reports/options/enabled', 0);
-        parent::tearDown();
+        return ['products' => $products, 'productsIsConfigured' => false];
     }
 }

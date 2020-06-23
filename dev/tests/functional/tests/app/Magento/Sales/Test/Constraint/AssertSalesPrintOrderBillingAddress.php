@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -25,11 +25,11 @@ class AssertSalesPrintOrderBillingAddress extends AbstractConstraint
     public function processAssert(SalesGuestPrint $salesGuestPrint, Address $billingAddress)
     {
         $addressRenderer = $this->objectManager->create(
-            \Magento\Customer\Test\Block\Address\Renderer::class,
+            'Magento\Customer\Test\Block\Address\Renderer',
             ['address' => $billingAddress, 'type' => 'html']
         );
         $expectedBillingAddress = $addressRenderer->render();
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             $expectedBillingAddress,
             $salesGuestPrint->getInfoBlock()->getBillingAddress(),
             "Billing address was printed incorrectly."

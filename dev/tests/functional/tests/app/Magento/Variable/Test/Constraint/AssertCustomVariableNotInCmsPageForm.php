@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -31,7 +31,7 @@ class AssertCustomVariableNotInCmsPageForm extends AbstractConstraint
         $cmsPageForm = $cmsPageNew->getPageForm();
         $variables = $cmsPageForm->getSystemVariables();
 
-        \PHPUnit\Framework\Assert::assertFalse(
+        \PHPUnit_Framework_Assert::assertFalse(
             in_array($customVariableName, $variables),
             'Custom System Variable "' . $customVariableName . '" is present in Cms Page Form.'
         );

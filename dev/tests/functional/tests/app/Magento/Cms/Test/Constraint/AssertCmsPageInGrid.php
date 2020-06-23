@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -20,17 +20,15 @@ class AssertCmsPageInGrid extends AbstractConstraint
      *
      * @param CmsPageIndex $cmsIndex
      * @param CmsPage $cms
-     * @param string $expectedStatus [optional]
      * @return void
      */
-    public function processAssert(CmsPageIndex $cmsIndex, CmsPage $cms, $expectedStatus = '')
+    public function processAssert(CmsPageIndex $cmsIndex, CmsPage $cms)
     {
         $filter = [
             'title' => $cms->getTitle(),
-            'is_active' => $expectedStatus
         ];
         $cmsIndex->open();
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $cmsIndex->getCmsPageGridBlock()->isRowVisible($filter, true, false),
             'Cms page \'' . $cms->getTitle() . '\' is not present in pages grid.'
         );

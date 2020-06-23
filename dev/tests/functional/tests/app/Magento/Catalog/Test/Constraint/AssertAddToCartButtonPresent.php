@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -44,15 +44,15 @@ class AssertAddToCartButtonPresent extends AbstractConstraint
         while (!$isProductVisible && $catalogCategoryView->getBottomToolbar()->nextPage()) {
             $isProductVisible = $catalogCategoryView->getListProductBlock()->getProductItem($product)->isVisible();
         }
-        \PHPUnit\Framework\Assert::assertTrue($isProductVisible, 'Product is absent on category page.');
+        \PHPUnit_Framework_Assert::assertTrue($isProductVisible, 'Product is absent on category page.');
 
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $catalogCategoryView->getListProductBlock()->getProductItem($product)->isVisibleAddToCardButton(),
             "Button 'Add to Card' is absent on Category page."
         );
 
         $catalogCategoryView->getListProductBlock()->getProductItem($product)->open();
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $catalogProductView->getViewBlock()->isVisibleAddToCardButton(),
             "Button 'Add to Card' is absent on Product page."
         );

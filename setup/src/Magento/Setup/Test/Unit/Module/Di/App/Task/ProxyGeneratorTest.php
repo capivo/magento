@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -10,56 +10,86 @@ use Magento\Setup\Module\Di\App\Task\Operation\ProxyGenerator;
 use Magento\Setup\Module\Di\Code\Scanner;
 use Magento\Setup\Module\Di\Code\Reader\ClassesScanner;
 
-class ProxyGeneratorTest extends \PHPUnit\Framework\TestCase
+class ProxyGeneratorTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var Scanner\DirectoryScanner | \PHPUnit_Framework_MockObject_MockObject
+     */
+    private $directoryScannerMock;
+
     /**
      * @var Scanner\XmlScanner | \PHPUnit_Framework_MockObject_MockObject
      */
     private $proxyScannerMock;
 
-    /**
-     * @var \Magento\Setup\Module\Di\Code\Scanner\ConfigurationScanner | \PHPUnit_Framework_MockObject_MockObject
-     */
-    private $configurationScannerMock;
-
-    /**
-     * @var \Magento\Setup\Module\Di\App\Task\Operation\ProxyGenerator
-     */
-    private $model;
-
     protected function setUp()
     {
-        $this->proxyScannerMock = $this->getMockBuilder(\Magento\Setup\Module\Di\Code\Scanner\XmlScanner::class)
+        $this->directoryScannerMock = $this->getMockBuilder('Magento\Setup\Module\Di\Code\Scanner\DirectoryScanner')
             ->disableOriginalConstructor()
             ->getMock();
-
-        $this->configurationScannerMock = $this->getMockBuilder(
-            \Magento\Setup\Module\Di\Code\Scanner\ConfigurationScanner::class
-        )->disableOriginalConstructor()
+        $this->proxyScannerMock = $this->getMockBuilder('Magento\Setup\Module\Di\Code\Scanner\XmlScanner')
+            ->disableOriginalConstructor()
             ->getMock();
+    }
 
-        $objectManagerHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
-        $this->model = $objectManagerHelper->getObject(
-            \Magento\Setup\Module\Di\App\Task\Operation\ProxyGenerator::class,
-            [
-                'proxyScanner' => $this->proxyScannerMock,
-                'configurationScanner' => $this->configurationScannerMock,
-            ]
+    /**
+     * @param array $data
+     *
+     * @dataProvider doOperationWrongDataDataProvider
+     */
+    public function testDoOperationWrongData($data)
+    {
+        $model = new ProxyGenerator(
+            $this->directoryScannerMock,
+            $this->proxyScannerMock,
+            $data
         );
+
+        $this->directoryScannerMock->expects($this->never())
+            ->method('scan');
+        $this->proxyScannerMock->expects($this->never())
+            ->method('collectEntities');
+
+        $this->assertEmpty($model->doOperation());
+    }
+
+    /**
+     * @return array
+     */
+    public function doOperationWrongDataDataProvider()
+    {
+        return [
+            [[]],
+            [['filePatterns' => ['php' => '*.php']]],
+            [['path' => 'path']],
+        ];
     }
 
     public function testDoOperation()
     {
-        $files = ['file1', 'file2'];
-        $this->configurationScannerMock->expects($this->once())
+        $data = [
+            'paths' => ['path/to/app'],
+            'filePatterns' => ['di' => 'di.xml'],
+            'excludePatterns' => ['/\/Test\//'],
+        ];
+        $files = ['di' => []];
+        $model = new ProxyGenerator(
+            $this->directoryScannerMock,
+            $this->proxyScannerMock,
+            $data
+        );
+
+        $this->directoryScannerMock->expects($this->once())
             ->method('scan')
-            ->with('di.xml')
-            ->willReturn($files);
+            ->with(
+                $data['paths'][0],
+                $data['filePatterns']
+            )->willReturn($files);
         $this->proxyScannerMock->expects($this->once())
             ->method('collectEntities')
-            ->with($files)
+            ->with($files['di'])
             ->willReturn([]);
 
-        $this->model->doOperation();
+        $this->assertEmpty($model->doOperation());
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Api;
@@ -165,9 +165,19 @@ class AttributeSetRepositoryTest extends WebapiAbstract
     {
         $searchCriteria = [
             'searchCriteria' => [
-                'filter_groups' => [],
+                'filter_groups' => [
+                    [
+                        'filters' => [
+                            [
+                                'field' => 'entity_type_code',
+                                'value' => 'catalog_product',
+                                'condition_type' => 'eq',
+                            ],
+                        ],
+                    ],
+                ],
                 'current_page' => 1,
-                'page_size' => 2
+                'page_size' => 2,
             ],
         ];
 
@@ -208,7 +218,7 @@ class AttributeSetRepositoryTest extends WebapiAbstract
     {
         $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
         /** @var \Magento\Eav\Model\Entity\Attribute\Set $attributeSet */
-        $attributeSet = $objectManager->create(\Magento\Eav\Model\Entity\Attribute\Set::class)
+        $attributeSet = $objectManager->create('Magento\Eav\Model\Entity\Attribute\Set')
             ->load($attributeSetName, 'attribute_set_name');
         if ($attributeSet->getId() === null) {
             return null;

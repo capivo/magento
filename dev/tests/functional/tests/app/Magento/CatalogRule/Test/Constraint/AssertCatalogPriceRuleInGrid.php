@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -15,12 +15,6 @@ use Magento\Mtf\Constraint\AbstractConstraint;
  */
 class AssertCatalogPriceRuleInGrid extends AbstractConstraint
 {
-    /**
-     * Fields used to filter rows in the grid.
-     * @var array
-     */
-    protected $fieldsToFilter = ['name'];
-
     /**
      * Assert that data in grid on Catalog Price Rules page according to fixture
      *
@@ -37,11 +31,10 @@ class AssertCatalogPriceRuleInGrid extends AbstractConstraint
         $data = ($catalogPriceRuleOriginal === null)
             ? $catalogPriceRule->getData()
             : array_merge($catalogPriceRuleOriginal->getData(), $catalogPriceRule->getData());
-
-        $filter = [];
-        foreach ($this->fieldsToFilter as $field) {
-            $filter[$field] = $data[$field];
-        }
+        $filter = [
+            'name' => $data['name'],
+            'is_active' => $data['is_active'],
+        ];
         //add ruleWebsite to filter if there is one
         if ($catalogPriceRule->getWebsiteIds() != null) {
             $ruleWebsite = $catalogPriceRule->getWebsiteIds();
@@ -57,7 +50,7 @@ class AssertCatalogPriceRuleInGrid extends AbstractConstraint
 
         $pageCatalogRuleIndex->open();
         $errorMessage = implode(', ', $filter);
-        \PHPUnit\Framework\Assert::assertTrue(
+        \PHPUnit_Framework_Assert::assertTrue(
             $pageCatalogRuleIndex->getCatalogRuleGrid()->isRowVisible($filter),
             'Catalog Price Rule with following data: \'' . $errorMessage . '\' '
             . 'is absent in Catalog Price Rule grid.'

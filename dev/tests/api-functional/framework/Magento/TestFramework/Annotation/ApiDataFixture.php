@@ -6,9 +6,11 @@
  * that no transactions should be used for API data fixtures.
  * Otherwise fixture data will not be accessible to Web API functional tests.
  *
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+// @codingStandardsIgnoreFile
 
 namespace Magento\TestFramework\Annotation;
 
@@ -45,11 +47,10 @@ class ApiDataFixture
     /**
      * Handler for 'startTest' event
      *
-     * @param \PHPUnit\Framework\TestCase $test
+     * @param \PHPUnit_Framework_TestCase $test
      */
-    public function startTest(\PHPUnit\Framework\TestCase $test)
+    public function startTest(\PHPUnit_Framework_TestCase $test)
     {
-        \Magento\TestFramework\Helper\Bootstrap::getInstance()->reinitialize();
         /** Apply method level fixtures if thy are available, apply class level fixtures otherwise */
         $this->_applyFixtures($this->_getFixtures('method', $test) ?: $this->_getFixtures('class', $test));
     }
@@ -60,20 +61,17 @@ class ApiDataFixture
     public function endTest()
     {
         $this->_revertFixtures();
-        /** @var $objectManager \Magento\TestFramework\ObjectManager */
-        $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
-        $objectManager->get(\Magento\Customer\Model\Metadata\AttributeMetadataCache::class)->clean();
     }
 
     /**
      * Retrieve fixtures from annotation
      *
      * @param string $scope 'class' or 'method'
-     * @param \PHPUnit\Framework\TestCase $test
+     * @param \PHPUnit_Framework_TestCase $test
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function _getFixtures($scope, \PHPUnit\Framework\TestCase $test)
+    protected function _getFixtures($scope, \PHPUnit_Framework_TestCase $test)
     {
         $annotations = $test->getAnnotations();
         $result = [];
@@ -100,7 +98,6 @@ class ApiDataFixture
      * Execute single fixture script
      *
      * @param string|array $fixture
-     * @throws \Throwable
      */
     protected function _applyOneFixture($fixture)
     {
@@ -111,13 +108,9 @@ class ApiDataFixture
                 require $fixture;
             }
         } catch (\Exception $e) {
-            throw new \Exception(
-                sprintf(
-                    "Exception occurred when running the %s fixture: \n%s",
-                    (\is_array($fixture) || is_scalar($fixture) ? json_encode($fixture) : 'callback'),
-                    $e->getMessage()
-                )
-            );
+            echo 'Exception occurred when running the '
+            . (is_array($fixture) || is_scalar($fixture) ? json_encode($fixture) : 'callback')
+            . ' fixture: ', PHP_EOL, $e;
         }
         $this->_appliedFixtures[] = $fixture;
     }
@@ -144,8 +137,7 @@ class ApiDataFixture
      */
     protected function _revertFixtures()
     {
-        $appliedFixtures = array_reverse($this->_appliedFixtures);
-        foreach ($appliedFixtures as $fixture) {
+        foreach ($this->_appliedFixtures as $fixture) {
             if (is_callable($fixture)) {
                 $fixture[1] .= 'Rollback';
                 if (is_callable($fixture)) {

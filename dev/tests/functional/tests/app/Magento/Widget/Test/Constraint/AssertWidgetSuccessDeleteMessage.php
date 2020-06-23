@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright © 2015 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -32,7 +32,7 @@ class AssertWidgetSuccessDeleteMessage extends AbstractConstraint
     public function processAssert(WidgetInstanceIndex $widgetInstanceIndex)
     {
         $actualMessage = $widgetInstanceIndex->getMessagesBlock()->getSuccessMessage();
-        \PHPUnit\Framework\Assert::assertEquals(
+        \PHPUnit_Framework_Assert::assertEquals(
             self::DELETE_MESSAGE,
             $actualMessage,
             'Wrong widget success delete message is displayed.'
